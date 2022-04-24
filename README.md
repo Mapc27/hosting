@@ -15,4 +15,7 @@
 
 ## Getting started
 - `poetry install`
-- `alembic upgrade`
+- создать БД
+- `.env` создать файл (смотреть `example.env`)
+- `alembic upgrade <копируете номер последней миграции (fa469d7e4b04)>`
+- тоесть `alembic upgrade fa469d7e4b04`
