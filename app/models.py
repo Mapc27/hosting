@@ -1,10 +1,9 @@
-from sqlalchemy import (Column, Integer, String, DateTime, func, Boolean, ForeignKey, CheckConstraint, Time, Float,
+from sqlalchemy import (Column, Integer, String, DateTime, func, Boolean, CheckConstraint, Time, Float,
                         Unicode, Date, Text, UniqueConstraint, ForeignKeyConstraint)
-from sqlalchemy.orm import declarative_base, relationship, composite
 from sqlalchemy.dialects.postgresql import TSRANGE
+from sqlalchemy.orm import declarative_base, relationship, composite
 from sqlalchemy_utils import PhoneNumber
 from sqlalchemy_utils.types.email import EmailType
-
 
 Base = declarative_base()
 
