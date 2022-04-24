@@ -26,8 +26,10 @@ Session = sessionmaker(engine)
 
 
 with Session() as session:
-    housing = session.query(Housing).all()[0]
-    user = session.query(User).all()[0]
-    history = session.query(HousingHistory).all()[0]
-
+    # создать юзера
+    user = User(name='user name', surname='surname', phone_number=PhoneNumber('0123456789', 'RU'), email='email',
+                   birth_date=date(year=2022, month=4, day=20), password='123')
     session.commit()
+
+    # получить юзера
+    user = session.query(User).all()[0]
