@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, date
 
 from dotenv import load_dotenv
 from psycopg2._range import DateTimeRange
@@ -7,7 +7,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import PhoneNumber
 
-from app.models import Housing, HousingCategory, CharacteristicType, Characteristic, User, Request
+from app.models import Housing, HousingCategory, CharacteristicType, Characteristic, User, Request, HousingHistory, \
+    HousingReview
 
 load_dotenv()
 
@@ -25,10 +26,8 @@ Session = sessionmaker(engine)
 
 
 with Session() as session:
-    client = session.query(User).filter(User.id == 2).all()[0]
-    owner = session.query(User).filter(User.id == 1).all()[0]
     housing = session.query(Housing).all()[0]
+    user = session.query(User).all()[0]
+    history = session.query(HousingHistory).all()[0]
 
-    print(dir(housing.requests[0].during))
-    # print(obj)
     session.commit()
