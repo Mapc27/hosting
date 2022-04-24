@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "hosting"
+version = "0.1.0"
+description = ""
+authors = ["Mapc <mapctrigotixd@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.75.2"
+SQLAlchemy = "^1.4.35"
+alembic = "^1.7.7"
+python-dotenv = "^0.20.0"
+psycopg2 = "^2.9.3"
+SQLAlchemy-Utils = "^0.38.2"
+phonenumbers = "^8.12.47"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
