@@ -1,13 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 
-from auth import user
+from auth import auth, scheme
+from auth.token import get_current_user
 
 app = FastAPI()
 
 
-app.include_router(user.router)
+app.include_router(auth.router)
 
 
 @app.get("/")
-def read_root():
+def index(user: scheme.User = Depends(get_current_user)):
     return {"Hello": "World"}

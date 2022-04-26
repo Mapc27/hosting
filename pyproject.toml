@@ -2,12 +2,22 @@
 name = "hosting"
 version = "0.1.0"
 description = ""
-authors = ["Korneeva_006 <varvara_korneeva@mail.ru>"]
+authors = ["Mapc <mapctrigotixd@gmail.com>", "Korneeva_006 <varvara_korneeva@mail.ru>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-fastapi = "0.75.2"
-uvicorn = "0.17.6"
+fastapi = "^0.75.2"
+SQLAlchemy = "^1.4.35"
+alembic = "^1.7.7"
+python-dotenv = "^0.20.0"
+psycopg2 = "^2.9.3"
+SQLAlchemy-Utils = "^0.38.2"
+phonenumbers = "^8.12.47"
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+uvicorn = "^0.17.6"
+python-multipart = "^0.0.5"
+bcrypt = "^3.2.0"
 
 [tool.poetry.dev-dependencies]
 
