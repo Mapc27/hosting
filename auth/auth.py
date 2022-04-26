@@ -3,7 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 
 from app.views import Session, get_db
-from auth.database import get_user_by_email
+from auth import scheme
+from auth.database import get_user_by_email, create_user
 from auth.token import verify_token, create_access_token
 
 router = APIRouter(prefix="/user", tags=["authentication"])
@@ -21,3 +22,8 @@ async def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = De
 
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post('/create')
+def create(user: scheme.UserCreate, db: Session = Depends(get_db)):
+    return create_user(db, user)

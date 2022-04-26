@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -12,21 +13,24 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 
-class User(BaseModel):
+class BaseUser(BaseModel):
     email: str
+
+
+class User(BaseUser):
     name: Optional[str] = None
     surname: Optional[str] = None
-    disabled: Optional[bool] = None
 
 
-class UserCreate(User):
+class UserCreate(BaseUser):
     password: str
+    name: str
+    surname: str
+    phone_number: str
+    phone_country_code: str
+    birth_date: datetime.date
 
 
 class Login(BaseModel):
     email: str
     password: str
-
-
-class UserInDB(User):
-    hashed_password: str
