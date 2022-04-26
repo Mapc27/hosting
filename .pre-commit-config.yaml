@@ -27,7 +27,4 @@ repos:
         verbose: true
         files: app/
         additional_dependencies:
-          - 'sqlalchemy'
-        args: [
-          --strict
-        ]
+          ['sqlalchemy']
