@@ -27,4 +27,4 @@ repos:
         verbose: true
         exclude: alembic
         additional_dependencies:
-          ['sqlalchemy']
+          - 'sqlalchemy'

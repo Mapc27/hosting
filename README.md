@@ -14,7 +14,37 @@
 
 
 ## Getting started
-- `poetry install`
-- создать БД
-- `.env` создать файл (смотреть `example.env`)
-- `alembic upgrade head`
+
+Install all dependencies
+
+```bash
+poetry install
+```
+
+Create database
+
+
+Copy all environments variables
+
+
+```bash
+copy example.env
+```
+
+Synchronize the database state with the current set of models and migrations.
+
+```bash
+alembic upgrade head
+```
+
+Install pre-commit
+
+```bash
+pre-commit install
+```
+
+Run the server
+
+```bash
+uvicorn web:app
+```

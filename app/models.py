@@ -574,7 +574,7 @@ class ChatMessage(Base, BaseMixin):
     chat_id: int = Column(Integer, nullable=False)
 
     user: User = relationship("User", back_populates="messages", uselist=False)
-    chat = relationship("Chat", back_populates="messages", uselist=False)
+    chat: Chat = relationship("Chat", back_populates="messages", uselist=False)
 
     def __repr__(self) -> str:
         return (
