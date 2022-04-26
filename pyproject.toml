@@ -7,12 +7,15 @@ authors = ["Mapc <mapctrigotixd@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 fastapi = "^0.75.2"
-SQLAlchemy = "^1.4.35"
+SQLAlchemy = {extras = ["mypy"], version = "^1.4.35"}
 alembic = "^1.7.7"
 python-dotenv = "^0.20.0"
 psycopg2 = "^2.9.3"
 SQLAlchemy-Utils = "^0.38.2"
 phonenumbers = "^8.12.47"
+pre-commit = "^2.18.1"
+mypy = "^0.942"
+sqlalchemy-stubs = "^0.4"
 
 [tool.poetry.dev-dependencies]
 
