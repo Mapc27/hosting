@@ -25,6 +25,6 @@ repos:
     hooks:
       - id: mypy
         verbose: true
-        files: app/
+        exclude: alembic
         additional_dependencies:
           ['sqlalchemy']
