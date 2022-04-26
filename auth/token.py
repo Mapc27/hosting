@@ -24,15 +24,16 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
-async def verify_token(token: str, credentials_exception):
+def verify_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         if email is None:
-            raise credentials_exception
-        return TokenData(email=email)
+            return credentials_exception
+        return TokenData(email=email, expires=expire)
     except JWTError:
-        raise credentials_exception
+        return credentials_exception
 
 
 async def get_current_user(data: str = Depends(oauth2_scheme)):
@@ -42,6 +43,8 @@ async def get_current_user(data: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     token_data = verify_token(data, credentials_exception)
+    if token_data == "credentials_exception":
+        raise credentials_exception
     db = Session()
 
     return get_user_by_email(db, token_data.email)

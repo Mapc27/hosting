@@ -5,7 +5,7 @@ from starlette import status
 from app.views import Session, get_db
 from auth import scheme
 from auth.database import get_user_by_email, create_user
-from auth.token import verify_token, create_access_token
+from auth.token import verify_token, create_access_token, get_current_user
 
 router = APIRouter(prefix="/user", tags=["authentication"])
 
@@ -27,3 +27,9 @@ async def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = De
 @router.post('/create')
 def create(user: scheme.UserCreate, db: Session = Depends(get_db)):
     return create_user(db, user)
+
+
+@router.post("/logout")
+def logout(user: scheme.User = Depends(get_current_user)):
+    token_data = scheme.TokenData(email=user.email, expires=0)
+    return token_data

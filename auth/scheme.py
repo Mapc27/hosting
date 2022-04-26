@@ -11,6 +11,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+    expires: datetime.datetime
 
 
 class BaseUser(BaseModel):
