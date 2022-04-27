@@ -49,3 +49,6 @@ Run the server
 ```bash
 uvicorn web:app
 ```
+
+## Design layout
+[Figma](https://www.figma.com/file/ojhuuUbVw3gAGSFp4VfX20/hosting?node-id=0%3A1)
