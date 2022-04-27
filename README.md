@@ -10,7 +10,7 @@
 - рейтинг пользователей: как арендатора, так и арендодателя.
 
 
-##ER-диаграмма
+## ER-диаграмма
 [Diagram](https://online.visual-paradigm.com/community/share/untitled-xn5l9vwds)
 
 
