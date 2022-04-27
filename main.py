@@ -1,3 +1,5 @@
+from typing import Dict
+
 from fastapi import FastAPI, Depends
 
 from auth import auth, scheme
@@ -10,5 +12,5 @@ app.include_router(auth.router)
 
 
 @app.get("/")
-def index(user: scheme.User = Depends(get_current_user)):
+def index(user: scheme.User = Depends(get_current_user)) -> dict:
     return {"Hello": "World"}

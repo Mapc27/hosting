@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
+from typing import Union
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from starlette import status
 
+from app.models import User
 from app.views import Session
 from auth.database import get_user_by_email
 from auth.scheme import TokenData
@@ -16,15 +18,17 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/login")
 
 
-def create_access_token(data: dict):
+def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return str(encoded_jwt)
 
 
-def verify_token(token: str, credentials_exception):
+def verify_token(
+    token: str, credentials_exception: HTTPException
+) -> Union[TokenData, HTTPException]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
@@ -36,7 +40,7 @@ def verify_token(token: str, credentials_exception):
         return credentials_exception
 
 
-async def get_current_user(data: str = Depends(oauth2_scheme)):
+async def get_current_user(data: str = Depends(oauth2_scheme)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

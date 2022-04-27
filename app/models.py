@@ -20,13 +20,20 @@ from sqlalchemy import (
     ForeignKeyConstraint,
 )
 from sqlalchemy.dialects.postgresql import TSRANGE
-from sqlalchemy.orm import relationship, composite, DeclarativeMeta, Mapped
+from sqlalchemy.orm import relationship, composite, DeclarativeMeta, Mapped, registry
 from sqlalchemy_utils import PhoneNumber
 from sqlalchemy_utils.types.email import EmailType
+
+mapper_registry = registry()
 
 
 class Base(metaclass=DeclarativeMeta):
     __abstract__ = True
+
+    registry = mapper_registry
+    metadata = mapper_registry.metadata
+
+    __init__ = mapper_registry.constructor
 
 
 class BaseMixin(object):
@@ -368,7 +375,7 @@ class User(Base, BaseMixin):
     password: str = Column(Text, nullable=False)
 
     # chats
-    housing: List[Housing] = relationship(
+    housings: List[Housing] = relationship(
         "Housing", back_populates="user", uselist=True, collection_class=list
     )
     requests: List["Request"] = relationship(
