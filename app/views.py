@@ -16,6 +16,9 @@ from app.models import (
     Request,
     HousingHistory,
     HousingReview,
+    ComfortCategory,
+    Comfort,
+    HousingComfort,
 )
 
 load_dotenv()
@@ -43,12 +46,23 @@ def get_db() -> sessionmaker:
         db.close()
 
 
-# with Session() as session:
-# #     # создать юзера
-# # user = User(name='user1', surname='surname', phone_number=PhoneNumber('0123456789', 'RU'), email='email@mail.ru',
-# #             birth_date=date(year=2022, month=4, day=20), password='123')
-# # session.commit()
-#
-#     # получить юзера
-#     user = session.query(User).all()[0]
-#     print(type(user))
+with Session() as session:
+    #     # создать юзера
+    # user = User(name='user1', surname='surname', phone_number=PhoneNumber('0123456789', 'RU'), email='email@mail.ru',
+    #             birth_date=date(year=2022, month=4, day=20), password='123')
+    # session.commit()
+
+    # получить юзера
+    # user = session.query(User).all()[0]
+    # print(type(user))
+
+    housing = session.query(Housing).all()[0]
+    cc = session.query(ComfortCategory).all()[0]
+    c = session.query(Comfort).all()[0]
+    hc = session.query(HousingComfort).all()[0]
+    print(housing)
+    print(cc)
+    print(c)
+    print(hc)
+
+    session.commit()
