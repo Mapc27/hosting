@@ -46,12 +46,26 @@ class Housing(Base, BaseMixin):
     __tablename__ = "housing"
     __table_args__ = (
         ForeignKeyConstraint(
-            ("category_id",), ("housing_category.id",), name="fk_on_housing_category"
+            ("category_id",),
+            ("housing_category.id",),
+            name="fk_on_housing_category",
+            ondelete="SET NULL",
+            onupdate="CASCADE",
         ),
         ForeignKeyConstraint(
-            ("type_id",), ("housing_type.id",), name="fk_on_housing_type"
+            ("type_id",),
+            ("housing_type.id",),
+            name="fk_on_housing_type",
+            ondelete="SET NULL",
+            onupdate="CASCADE",
         ),
-        ForeignKeyConstraint(("user_id",), ("user.id",), name="fk_on_user"),
+        ForeignKeyConstraint(
+            ("user_id",),
+            ("user.id",),
+            name="fk_on_user",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
     )
 
     name: str = Column(String(50), nullable=False)
@@ -93,10 +107,16 @@ class Housing(Base, BaseMixin):
     history: List["HousingHistory"] = relationship(
         "HousingHistory", back_populates="housing", uselist=True, collection_class=list
     )
+    housing_comforts: List["HousingComfort"] = relationship(
+        "HousingComfort", back_populates="housing", uselist=True, collection_class=list
+    )
+    housing_features: List["HousingFeature"] = relationship(
+        "HousingFeature", back_populates="housing", uselist=True, collection_class=list
+    )
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(name='{self.name}', description='{self.description}',"
+            f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', description='{self.description}',"
             f" address='{self.address}')>"
         )
 
@@ -114,7 +134,7 @@ class CharacteristicType(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(name='{self.name}', characteristics='{self.characteristics}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', characteristics='{self.characteristics}')>"
 
 
 class Characteristic(Base, BaseMixin):
@@ -125,11 +145,19 @@ class Characteristic(Base, BaseMixin):
             "housing_id",
             "characteristic_type_id",
         ),
-        ForeignKeyConstraint(("housing_id",), ("housing.id",), name="fk_on_housing"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         ForeignKeyConstraint(
             ("characteristic_type_id",),
             ("characteristic_type.id",),
             name="fk_on_characteristic_type",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
     )
 
@@ -147,7 +175,7 @@ class Characteristic(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(housing='{self.housing}',"
+            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}',"
             f" characteristic_type='{self.characteristic_type}', amount='{self.amount}')>"
         )
 
@@ -160,6 +188,8 @@ class HousingCategory(Base, BaseMixin):
             ("parent_id",),
             ("housing_category.id",),
             name="fk_on_yourself",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
     )
 
@@ -176,7 +206,7 @@ class HousingCategory(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(name='{self.name}', description='{self.description}',"
+            f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', description='{self.description}',"
             f" level='{self.level}', parent='{self.parent}', housings='{self.housings}')>"
         )
 
@@ -192,7 +222,7 @@ class HousingType(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(name='{self.name}', description='{self.description}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', description='{self.description}')>"
 
 
 class HousingCalendar(Base, BaseMixin):
@@ -205,7 +235,13 @@ class HousingCalendar(Base, BaseMixin):
             "min_nights >= 0 and max_nights >= 0",
             name="check_numbers_of_nights",
         ),
-        ForeignKeyConstraint(("housing_id",), ("housing.id",), name="fk_on_housing"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
     )
 
     during: DateTimeRange = Column(TSRANGE(), nullable=False)
@@ -219,7 +255,7 @@ class HousingCalendar(Base, BaseMixin):
     housing: Housing = relationship("Housing", back_populates="calendar", uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(during='{self.during}', housing='{self.housing}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, during='{self.during}', housing='{self.housing}')>"
 
 
 class HousingPricing(Base, BaseMixin):
@@ -248,7 +284,13 @@ class HousingPricing(Base, BaseMixin):
             "discount_per_month >= 0 and discount_per_month <= 100",
             name="check_discount_per_month",
         ),
-        ForeignKeyConstraint(("housing_id",), ("housing.id",), name="fk_on_housing"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
     )
 
     per_night: int = Column(Integer, nullable=False)
@@ -262,7 +304,7 @@ class HousingPricing(Base, BaseMixin):
     housing: Housing = relationship("Housing", back_populates="pricing", uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(per_night='{self.per_night}', housing='{self.housing}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, per_night='{self.per_night}', housing='{self.housing}')>"
 
 
 class Rule(Base, BaseMixin):
@@ -275,7 +317,7 @@ class Rule(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(name='{self.name}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
 
 
 class HousingRule(Base, BaseMixin):
@@ -285,8 +327,20 @@ class HousingRule(Base, BaseMixin):
             "housing_id",
             "rule_id",
         ),
-        ForeignKeyConstraint(("housing_id",), ("housing.id",), name="fk_on_housing"),
-        ForeignKeyConstraint(("rule_id",), ("rule.id",), name="fk_on_rule"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ("rule_id",),
+            ("rule.id",),
+            name="fk_on_rule",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
     )
 
     housing_id: int = Column(Integer, nullable=False)
@@ -298,9 +352,7 @@ class HousingRule(Base, BaseMixin):
     rule: Rule = relationship("Rule", back_populates="housing_rules", uselist=False)
 
     def __repr__(self) -> str:
-        return (
-            f"<{self.__class__.__name__}(rule='{self.rule}', housing='{self.housing}')>"
-        )
+        return f"<{self.__class__.__name__}(id={self.id}, rule='{self.rule}', housing='{self.housing}')>"
 
 
 class ReviewCategory(Base, BaseMixin):
@@ -316,7 +368,7 @@ class ReviewCategory(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(name='{self.name}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
 
 
 class ReviewGrade(Base, BaseMixin):
@@ -327,11 +379,19 @@ class ReviewGrade(Base, BaseMixin):
             "housing_id",
             "review_category_id",
         ),
-        ForeignKeyConstraint(("housing_id",), ("housing.id",), name="fk_on_housing"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         ForeignKeyConstraint(
             ("review_category_id",),
             ("review_category.id",),
             name="fk_on_review_category",
+            ondelete="SET NULL",
+            onupdate="CASCADE",
         ),
     )
 
@@ -349,7 +409,7 @@ class ReviewGrade(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(housing='{self.housing}', review_category='{self.review_category}', "
+            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', review_category='{self.review_category}', "
             f"grade='{self.grade}')>"
         )
 
@@ -381,6 +441,7 @@ class User(Base, BaseMixin):
     requests: List["Request"] = relationship(
         "Request", back_populates="user", uselist=True, collection_class=list
     )
+    # todo
     #: UserReview reviews = relationship('UserReview', back_populates='user')
     #: UserReview reviews_author = relationship('UserReview', back_populates='reviewer')
     history: List["HousingHistory"] = relationship(
@@ -392,7 +453,7 @@ class User(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(name='{self.name}', surname='{self.surname}',"
+            f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', surname='{self.surname}',"
             f" phone_number='{self.phone_number}')>"
         )
 
@@ -408,8 +469,20 @@ class Request(Base, BaseMixin):
             "housing_id",
             "user_id",
         ),
-        ForeignKeyConstraint(("housing_id",), ("housing.id",), name="fk_on_housing"),
-        ForeignKeyConstraint(("user_id",), ("user.id",), name="fk_on_user"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="SET NULL",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ("user_id",),
+            ("user.id",),
+            name="fk_on_user",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
     )
 
     during: DateTimeRange = Column(TSRANGE(), nullable=False)
@@ -424,7 +497,7 @@ class Request(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(housing='{self.housing}', user='{self.user}',"
+            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', user='{self.user}',"
             f" number_of_guests='{self.number_of_guests}', during='{self.during}', message='{self.message}')>"
         )
 
@@ -440,8 +513,20 @@ class HousingHistory(Base, BaseMixin):
             "id",
             "user_id",
         ),
-        ForeignKeyConstraint(("housing_id",), ("housing.id",), name="fk_on_housing"),
-        ForeignKeyConstraint(("user_id",), ("user.id",), name="fk_on_user"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ("user_id",),
+            ("user.id",),
+            name="fk_on_user",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
     )
 
     during: DateTimeRange = Column(TSRANGE(), nullable=False)
@@ -457,7 +542,7 @@ class HousingHistory(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(housing='{self.housing}', user='{self.user}',"
+            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', user='{self.user}',"
             f" housing_reviews='{self.housing_review}', during='{self.during}')>"
         )
 
@@ -473,6 +558,8 @@ class HousingReview(Base, BaseMixin):
             ("history_id", "user_id"),
             ("housing_history.id", "housing_history.user_id"),
             name="fk_on_housing_history",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
     )
 
@@ -486,7 +573,7 @@ class HousingReview(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(history='{self.history}', content='{self.content}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, history='{self.history}', content='{self.content}')>"
 
 
 class UserReview(Base, BaseMixin):
@@ -500,11 +587,15 @@ class UserReview(Base, BaseMixin):
             ("reviewer_id",),
             ("user.id",),
             name="fk_reviewer",
+            ondelete="SET NULL",
+            onupdate="CASCADE",
         ),
         ForeignKeyConstraint(
             ("user_id",),
             ("user.id",),
             name="fk_user",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
     )
 
@@ -517,7 +608,7 @@ class UserReview(Base, BaseMixin):
     reviewer: User = relationship("User", foreign_keys=[reviewer_id], uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(user='{self.user}', reviewer='{self.reviewer}', content='{self.content}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, user='{self.user}', reviewer='{self.reviewer}', content='{self.content}')>"
 
 
 class Chat(Base, BaseMixin):
@@ -531,11 +622,15 @@ class Chat(Base, BaseMixin):
             ("user1_id",),
             ("user.id",),
             name="fk_user1_id",
+            ondelete="SET NULL",
+            onupdate="CASCADE",
         ),
         ForeignKeyConstraint(
             ("user2_id",),
             ("user.id",),
             name="fk_user2_id",
+            ondelete="SET NULL",
+            onupdate="CASCADE",
         ),
     )
 
@@ -550,7 +645,7 @@ class Chat(Base, BaseMixin):
     user2: User = relationship("User", foreign_keys=[user2_id], uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(user1='{self.user1}', user2='{self.user2}', messages='{self.messages}')>"
+        return f"<{self.__class__.__name__}(id={self.id}, user1='{self.user1}', user2='{self.user2}', messages='{self.messages}')>"
 
 
 class ChatMessage(Base, BaseMixin):
@@ -565,11 +660,15 @@ class ChatMessage(Base, BaseMixin):
             ("user_id",),
             ("user.id",),
             name="fk_on_user",
+            ondelete="SeT NULL",
+            onupdate="CASCADE",
         ),
         ForeignKeyConstraint(
             ("chat_id",),
             ("chat.id",),
             name="fk_on_chat",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
     )
 
@@ -585,6 +684,133 @@ class ChatMessage(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(chat='{self.chat}', user='{self.user}', content='{self.content}',"
+            f"<{self.__class__.__name__}(id={self.id}, chat='{self.chat}', user='{self.user}', content='{self.content}',"
             f" message_order='{self.message_order}')>"
         )
+
+
+class ComfortCategory(Base, BaseMixin):
+    __tablename__ = "comfort_category"
+
+    name: str = Column(String(50), nullable=False)
+
+    comforts: List["Comfort"] = relationship(
+        "Comfort", back_populates="category", uselist=True, collection_class=list
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
+
+
+class Comfort(Base, BaseMixin):
+    __tablename__ = "comfort"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ("category_id",),
+            ("comfort_category.id",),
+            name="fk_on_category",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
+
+    name: str = Column(String(50), nullable=False)
+
+    category_id: int = Column(Integer, nullable=False)
+
+    category: ComfortCategory = relationship(
+        "ComfortCategory", back_populates="comforts", uselist=False
+    )
+    housing_comforts: List["HousingComfort"] = relationship(
+        "HousingComfort", back_populates="comfort", uselist=True, collection_class=list
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', category='{self.category}')>"
+
+
+class HousingComfort(Base, BaseMixin):
+    __tablename__ = "housing_comfort"
+    __table_args__ = (
+        UniqueConstraint(
+            "housing_id",
+            "comfort_id",
+        ),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ("comfort_id",),
+            ("comfort.id",),
+            name="fk_on_comfort",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
+
+    housing_id = Column(Integer, nullable=False)
+    comfort_id = Column(Integer, nullable=False)
+
+    housing: Housing = relationship(
+        "Housing", back_populates="housing_comforts", uselist=False
+    )
+    comfort: Comfort = relationship(
+        "Comfort", back_populates="housing_comforts", uselist=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', comfort='{self.comfort}')>"
+
+
+class Feature(Base, BaseMixin):
+    __tablename__ = "feature"
+
+    name: str = Column(String(50), nullable=False)
+
+    housing_features: List["HousingFeature"] = relationship(
+        "HousingFeature", back_populates="feature", uselist=True, collection_class=list
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
+
+
+class HousingFeature(Base, BaseMixin):
+    __tablename__ = "housing_feature"
+    __table_args__ = (
+        UniqueConstraint(
+            "housing_id",
+            "feature_id",
+        ),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ("feature_id",),
+            ("feature.id",),
+            name="fk_on_feature",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
+
+    housing_id = Column(Integer, nullable=False)
+    feature_id = Column(Integer, nullable=False)
+
+    housing: Housing = relationship(
+        "Housing", back_populates="housing_features", uselist=False
+    )
+    feature: Feature = relationship(
+        "Feature", back_populates="housing_features", uselist=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', feature='{self.feature}')>"
