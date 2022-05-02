@@ -20,6 +20,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
 )
 from sqlalchemy.dialects.postgresql import TSRANGE
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, composite, DeclarativeMeta, Mapped, registry
 from sqlalchemy_utils import PhoneNumber
 from sqlalchemy_utils.types.email import EmailType
@@ -466,11 +467,13 @@ class User(Base, BaseMixin):
     _phone_number: Optional[str] = Column(Unicode(255), nullable=True)
     phone_country_code: Optional[str] = Column(Unicode(8), nullable=True)
 
-    phone_number: PhoneNumber = composite(
-        PhoneNumber,
-        _phone_number,
-        phone_country_code,
-    )
+    @hybrid_property
+    def phone_number(self) -> Any[PhoneNumber, None]:
+        return (
+            PhoneNumber(self._phone_number, self.phone_country_code)
+            if self._phone_number and self.phone_country_code
+            else None
+        )
 
     email: Any = Column(EmailType, nullable=False)
     birth_date: Optional[date] = Column(Date, nullable=True)
@@ -500,7 +503,7 @@ class User(Base, BaseMixin):
             f"id={self.id}, "
             f"name='{self.name}', "
             f"surname='{self.surname}', "
-            f"phone_number='{self.phone_number}')>"
+            f"email='{self.email}')>"
         )
 
 
