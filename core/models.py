@@ -454,6 +454,11 @@ class ReviewGrade(Base, BaseMixin):
 
 class User(Base, BaseMixin):
     __tablename__ = "user"
+    __table_args__ = (
+        UniqueConstraint(
+            "email",
+        ),
+    )
 
     name: Optional[str] = Column(String, nullable=True)
     surname: Optional[str] = Column(String, nullable=True)
