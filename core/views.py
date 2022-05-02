@@ -3,19 +3,18 @@ from core.models import (
     ComfortCategory,
     Comfort,
     HousingComfort,
+    User,
 )
 from app.settings import Session
 
 
 def test() -> None:
     with Session() as session:
-        housing = session.query(Housing).all()[0]
-        cc = session.query(ComfortCategory).all()[0]
-        c = session.query(Comfort).all()[0]
-        hc = session.query(HousingComfort).all()[0]
-        print(housing)
-        print(cc)
-        print(c)
-        print(hc)
-
+        user = User(email="123@gmail.com", password="1231")
+        print(user.phone_number)
+        # session.add(user)
         session.commit()
+
+
+if __name__ == "__main__":
+    test()
