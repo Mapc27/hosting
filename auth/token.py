@@ -6,8 +6,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from starlette import status
 
-from app.models import User
-from app.views import Session
+from core.models import User
+from core.views import Session
 from auth.database import get_user_by_email
 from auth.scheme import TokenData
 

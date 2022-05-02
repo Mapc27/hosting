@@ -101,8 +101,8 @@ class Housing(Base, BaseMixin):
     review_grades: List["ReviewGrade"] = relationship(
         "ReviewGrade", back_populates="housing", uselist=True, collection_class=list
     )
-    requests: List["Request"] = relationship(
-        "Request", back_populates="housing", uselist=True, collection_class=list
+    requests: List["HousingRequest"] = relationship(
+        "HousingRequest", back_populates="housing", uselist=True, collection_class=list
     )
     history: List["HousingHistory"] = relationship(
         "HousingHistory", back_populates="housing", uselist=True, collection_class=list
@@ -116,8 +116,11 @@ class Housing(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', description='{self.description}',"
-            f" address='{self.address}')>"
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"description='{self.description}', "
+            f"address='{self.address}')>"
         )
 
 
@@ -134,7 +137,12 @@ class CharacteristicType(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', characteristics='{self.characteristics}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"characteristics='{self.characteristics}')>"
+        )
 
 
 class Characteristic(Base, BaseMixin):
@@ -175,8 +183,11 @@ class Characteristic(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}',"
-            f" characteristic_type='{self.characteristic_type}', amount='{self.amount}')>"
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+            f"characteristic_type='{self.characteristic_type}', "
+            f"amount='{self.amount}')>"
         )
 
 
@@ -206,8 +217,13 @@ class HousingCategory(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', description='{self.description}',"
-            f" level='{self.level}', parent='{self.parent}', housings='{self.housings}')>"
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"description='{self.description}', "
+            f"level='{self.level}', "
+            f"parent='{self.parent}', "
+            f"housings='{self.housings}')>"
         )
 
 
@@ -222,7 +238,12 @@ class HousingType(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', description='{self.description}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"description='{self.description}')>"
+        )
 
 
 class HousingCalendar(Base, BaseMixin):
@@ -255,7 +276,12 @@ class HousingCalendar(Base, BaseMixin):
     housing: Housing = relationship("Housing", back_populates="calendar", uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, during='{self.during}', housing='{self.housing}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"during='{self.during}', "
+            f"housing='{self.housing}')>"
+        )
 
 
 class HousingPricing(Base, BaseMixin):
@@ -304,7 +330,12 @@ class HousingPricing(Base, BaseMixin):
     housing: Housing = relationship("Housing", back_populates="pricing", uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, per_night='{self.per_night}', housing='{self.housing}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"per_night='{self.per_night}', "
+            f"housing='{self.housing}')>"
+        )
 
 
 class Rule(Base, BaseMixin):
@@ -317,7 +348,7 @@ class Rule(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
+        return f"<{self.__class__.__name__}(" f"id={self.id}, " f"name='{self.name}')>"
 
 
 class HousingRule(Base, BaseMixin):
@@ -352,7 +383,12 @@ class HousingRule(Base, BaseMixin):
     rule: Rule = relationship("Rule", back_populates="housing_rules", uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, rule='{self.rule}', housing='{self.housing}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"rule='{self.rule}', "
+            f"housing='{self.housing}')>"
+        )
 
 
 class ReviewCategory(Base, BaseMixin):
@@ -368,7 +404,7 @@ class ReviewCategory(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
+        return f"<{self.__class__.__name__}(" f"id={self.id}, " f"name='{self.name}')>"
 
 
 class ReviewGrade(Base, BaseMixin):
@@ -409,7 +445,9 @@ class ReviewGrade(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', review_category='{self.review_category}', "
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, housing='{self.housing}', "
+            f"review_category='{self.review_category}', "
             f"grade='{self.grade}')>"
         )
 
@@ -417,11 +455,11 @@ class ReviewGrade(Base, BaseMixin):
 class User(Base, BaseMixin):
     __tablename__ = "user"
 
-    name: str = Column(String, nullable=False)
-    surname: str = Column(String, nullable=False)
+    name: Optional[str] = Column(String, nullable=True)
+    surname: Optional[str] = Column(String, nullable=True)
 
-    _phone_number: str = Column(Unicode(255), nullable=False)
-    phone_country_code: str = Column(Unicode(8), nullable=False)
+    _phone_number: Optional[str] = Column(Unicode(255), nullable=True)
+    phone_country_code: Optional[str] = Column(Unicode(8), nullable=True)
 
     phone_number: PhoneNumber = composite(
         PhoneNumber,
@@ -430,16 +468,16 @@ class User(Base, BaseMixin):
     )
 
     email: Any = Column(EmailType, nullable=False)
-    birth_date: date = Column(Date, nullable=False)
-    image: str = Column(String)
+    birth_date: Optional[date] = Column(Date, nullable=True)
+    image: Optional[str] = Column(String)
     password: str = Column(Text, nullable=False)
 
     # chats
     housings: List[Housing] = relationship(
         "Housing", back_populates="user", uselist=True, collection_class=list
     )
-    requests: List["Request"] = relationship(
-        "Request", back_populates="user", uselist=True, collection_class=list
+    requests: List["HousingRequest"] = relationship(
+        "HousingRequest", back_populates="user", uselist=True, collection_class=list
     )
     # todo
     #: UserReview reviews = relationship('UserReview', back_populates='user')
@@ -453,12 +491,15 @@ class User(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', surname='{self.surname}',"
-            f" phone_number='{self.phone_number}')>"
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"surname='{self.surname}', "
+            f"phone_number='{self.phone_number}')>"
         )
 
 
-class Request(Base, BaseMixin):
+class HousingRequest(Base, BaseMixin):
     __tablename__ = "request"
     __table_args__ = (
         CheckConstraint(
@@ -497,8 +538,13 @@ class Request(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', user='{self.user}',"
-            f" number_of_guests='{self.number_of_guests}', during='{self.during}', message='{self.message}')>"
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+            f"user='{self.user}', "
+            f"number_of_guests='{self.number_of_guests}', "
+            f"during='{self.during}', "
+            f"message='{self.message}')>"
         )
 
 
@@ -542,8 +588,12 @@ class HousingHistory(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', user='{self.user}',"
-            f" housing_reviews='{self.housing_review}', during='{self.during}')>"
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+            f"user='{self.user}', "
+            f"housing_reviews='{self.housing_review}', "
+            f"during='{self.during}')>"
         )
 
 
@@ -573,7 +623,12 @@ class HousingReview(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, history='{self.history}', content='{self.content}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"history='{self.history}', "
+            f"content='{self.content}')>"
+        )
 
 
 class UserReview(Base, BaseMixin):
@@ -608,7 +663,13 @@ class UserReview(Base, BaseMixin):
     reviewer: User = relationship("User", foreign_keys=[reviewer_id], uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, user='{self.user}', reviewer='{self.reviewer}', content='{self.content}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"user='{self.user}', "
+            f"reviewer='{self.reviewer}', "
+            f"content='{self.content}')>"
+        )
 
 
 class Chat(Base, BaseMixin):
@@ -645,7 +706,13 @@ class Chat(Base, BaseMixin):
     user2: User = relationship("User", foreign_keys=[user2_id], uselist=False)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, user1='{self.user1}', user2='{self.user2}', messages='{self.messages}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"user1='{self.user1}', "
+            f"user2='{self.user2}', "
+            f"messages='{self.messages}')>"
+        )
 
 
 class ChatMessage(Base, BaseMixin):
@@ -684,8 +751,12 @@ class ChatMessage(Base, BaseMixin):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}(id={self.id}, chat='{self.chat}', user='{self.user}', content='{self.content}',"
-            f" message_order='{self.message_order}')>"
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"chat='{self.chat}', "
+            f"user='{self.user}', "
+            f"content='{self.content}', "
+            f"message_order='{self.message_order}')>"
         )
 
 
@@ -699,7 +770,7 @@ class ComfortCategory(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
+        return f"<{self.__class__.__name__}(" f"id={self.id}, " f"name='{self.name}')>"
 
 
 class Comfort(Base, BaseMixin):
@@ -726,7 +797,12 @@ class Comfort(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}', category='{self.category}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"category='{self.category}')>"
+        )
 
 
 class HousingComfort(Base, BaseMixin):
@@ -763,7 +839,12 @@ class HousingComfort(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', comfort='{self.comfort}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+            f"comfort='{self.comfort}')>"
+        )
 
 
 class Feature(Base, BaseMixin):
@@ -776,7 +857,7 @@ class Feature(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, name='{self.name}')>"
+        return f"<{self.__class__.__name__}(" f"id={self.id}, " f"name='{self.name}')>"
 
 
 class HousingFeature(Base, BaseMixin):
@@ -813,4 +894,9 @@ class HousingFeature(Base, BaseMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(id={self.id}, housing='{self.housing}', feature='{self.feature}')>"
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+            f"feature='{self.feature}')>"
+        )
