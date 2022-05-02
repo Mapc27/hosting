@@ -1,11 +1,10 @@
-from typing import Dict
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 from starlette import status
 
-from app.models import User
-from app.views import Session, get_db
+from core.models import User
+from app.settings import get_db
 from auth import scheme
 from auth.database import get_user_by_email, create_user
 from auth.token import verify_token, create_access_token, get_current_user

@@ -2,8 +2,8 @@ from typing import Any, Union
 
 from sqlalchemy.orm import Session
 
-from app import models
-from app.models import User
+from core import models
+from core.models import User
 from auth.hashed import get_password_hash
 from auth.scheme import UserCreate
 
