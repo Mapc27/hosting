@@ -21,6 +21,7 @@ bcrypt = "^3.2.0"
 pre-commit = "^2.18.1"
 mypy = "^0.942"
 sqlalchemy-stubs = "^0.4"
+websockets = "^10.3"
 
 [tool.poetry.dev-dependencies]
 
