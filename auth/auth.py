@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 from starlette import status
 
-from app.views import Session, get_db
+from core.models import User
+from app.settings import get_db
 from auth import scheme
 from auth.database import create_user
 from auth.token import create_access_token, get_current_user, authenticate_user
@@ -11,7 +13,7 @@ router = APIRouter(prefix="/user", tags=["authentication"])
 
 
 @router.post('/login')
-async def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> dict:
     user = authenticate_user(db, request.username, request.password)
     if not user:
         raise HTTPException(
@@ -24,12 +26,12 @@ async def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = De
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post('/create')
-def create(user: scheme.UserCreate, db: Session = Depends(get_db)):
+@router.post("/create")
+def create(user: scheme.UserCreate, db: Session = Depends(get_db)) -> User:
     return create_user(db, user)
 
 
 @router.post("/logout")
-def logout(user: scheme.User = Depends(get_current_user)):
+def logout(user: scheme.User = Depends(get_current_user)) -> scheme.TokenData:
     token_data = scheme.TokenData(email=user.email, expires=0)
     return token_data
