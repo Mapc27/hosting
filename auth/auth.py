@@ -4,16 +4,16 @@ from starlette import status
 
 from app.views import Session, get_db
 from auth import scheme
-from auth.database import get_user_by_email, create_user
-from auth.token import verify_token, create_access_token, get_current_user
+from auth.database import create_user
+from auth.token import create_access_token, get_current_user, authenticate_user
 
 router = APIRouter(prefix="/user", tags=["authentication"])
 
 
 @router.post('/login')
 async def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = get_user_by_email(db, request.username)
-    if not user or not verify_token(user.password, request.password):
+    user = authenticate_user(db, request.username, request.password)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password or login",

@@ -7,6 +7,7 @@ from starlette import status
 
 from app.views import Session
 from auth.database import get_user_by_email
+from auth.hashed import verify_password
 from auth.scheme import TokenData
 
 SECRET_KEY = "206dl5m94fa26ca2556c81p16gb7a9563b9qfr099f6f0f4c0a6cf13b88e8d3k7"
@@ -48,3 +49,12 @@ async def get_current_user(data: str = Depends(oauth2_scheme)):
     db = Session()
 
     return get_user_by_email(db, token_data.email)
+
+
+def authenticate_user(db, email: str, password: str):
+    user = get_user_by_email(db, email)
+    if not user:
+        return False
+    if not verify_password(password, user.password):
+        return False
+    return user
