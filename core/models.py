@@ -468,7 +468,7 @@ class User(Base, BaseMixin):
     phone_country_code: Optional[str] = Column(Unicode(8), nullable=True)
 
     @hybrid_property
-    def phone_number(self) -> Any[PhoneNumber, None]:
+    def phone_number(self) -> Union[PhoneNumber, None]:
         return (
             PhoneNumber(self._phone_number, self.phone_country_code)
             if self._phone_number and self.phone_country_code
