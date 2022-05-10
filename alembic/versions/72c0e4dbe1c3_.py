@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 04b41bd9ddbd
+Revision ID: 72c0e4dbe1c3
 Revises:
-Create Date: 2022-05-04 08:11:27.800260
+Create Date: 2022-05-10 10:29:09.874143
 
 """
 import sqlalchemy_utils
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "04b41bd9ddbd"
+revision = "72c0e4dbe1c3"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -238,7 +238,6 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("content", sa.String(), nullable=False),
-        sa.Column("message_order", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("chat_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -256,7 +255,6 @@ def upgrade():
             ondelete="SeT NULL",
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("message_order", "user_id", "chat_id"),
     )
     op.create_table(
         "housing_calendar",
