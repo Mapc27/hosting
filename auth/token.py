@@ -27,7 +27,7 @@ def create_access_token(data: dict) -> str:
 
 
 def verify_token(
-    token: str, credentials_exception: HTTPException
+    token: str, credentials_exception: HTTPException = HTTPException
 ) -> Union[TokenData, HTTPException]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
