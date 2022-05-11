@@ -726,16 +726,12 @@ class Chat(Base, BaseMixin):
 class ChatMessage(Base, BaseMixin):
     __tablename__ = "chat_message"
     __table_args__ = (
-        UniqueConstraint(
-            "message_order",
-            "user_id",
-            "chat_id",
-        ),
+        CheckConstraint("user1_id != user2_id"),
         ForeignKeyConstraint(
             ("user_id",),
             ("user.id",),
             name="fk_on_user",
-            ondelete="SeT NULL",
+            ondelete="SET NULL",
             onupdate="CASCADE",
         ),
         ForeignKeyConstraint(
@@ -748,8 +744,6 @@ class ChatMessage(Base, BaseMixin):
     )
 
     content: str = Column(String, nullable=False)
-    # todo it without autoincrement
-    message_order: int = Column(Integer, nullable=False)
 
     user_id: int = Column(Integer, nullable=False)
     chat_id: int = Column(Integer, nullable=False)
@@ -761,10 +755,8 @@ class ChatMessage(Base, BaseMixin):
         return (
             f"<{self.__class__.__name__}("
             f"id={self.id}, "
-            f"chat='{self.chat}', "
             f"user='{self.user}', "
             f"content='{self.content}', "
-            f"message_order='{self.message_order}')>"
         )
 
 
