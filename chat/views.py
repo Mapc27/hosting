@@ -9,7 +9,7 @@ from chat.services import (
     get_chat_messages,
     get_user_by_token,
 )
-from core.models import User
+from core.models import User, ChatMessage
 
 router = APIRouter(
     prefix="/chat",
@@ -119,7 +119,9 @@ async def process_request(data: dict, user: User) -> None:
 
 async def send_chats(user: User) -> None:
     if user:
+        print(user)
         chats = get_chats_with_last_message_by_user(user=user)
+        print(chats)
 
         data = {"response": {"type": "CHATS", "body": {"chats": chats}}}
         return await manager.send_personal_json(json=data, user=user)
@@ -129,12 +131,13 @@ async def add_message_and_send_to_companion(data: dict, user: User) -> None:
     chat_id = data["request"]["body"]["chat_id"]
     message = data["request"]["body"]["message"]
     if chat_id and message:
-        companion: Union[User, None] = _add_message(
-            user=user, chat_id=chat_id, message=message
-        )
-        if companion:
+        result = _add_message(user=user, chat_id=chat_id, message=message)
+        if result:
+            chat_message_dict, companion = result
             await send_new_message(
-                users=[user, companion], chat_id=chat_id, message=message
+                users=[user, companion],
+                chat_id=chat_id,
+                chat_message_dict=chat_message_dict,
             )
 
 
@@ -146,11 +149,13 @@ async def send_chat_messages(data: dict, user: User) -> None:
         await manager.send_personal_json(json=response, user=user)
 
 
-async def send_new_message(users: List[User], chat_id: int, message: str) -> None:
+async def send_new_message(
+    users: List[User], chat_id: int, chat_message_dict: dict
+) -> None:
     response = {
         "response": {
             "type": "MESSAGE",
-            "body": {"message": message, "chat_id": chat_id},
+            "body": {"chat_message": chat_message_dict, "chat_id": chat_id},
         }
     }
     for user in users:

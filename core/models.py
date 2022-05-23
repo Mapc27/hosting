@@ -759,6 +759,12 @@ class ChatMessage(Base, BaseMixin):
             f"content='{self.content}', "
         )
 
+    def as_dict(self) -> dict:
+        self_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}  # type: ignore
+        self_dict["created_at"] = str(self_dict["created_at"])
+        self_dict["updated_at"] = str(self_dict["updated_at"])
+        return self_dict
+
 
 class ComfortCategory(Base, BaseMixin):
     __tablename__ = "comfort_category"

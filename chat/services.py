@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, List, Tuple
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -21,13 +21,13 @@ def get_user_by_token(token: str) -> Union[User, None]:
 
 def _add_message(
     user: Union[User, None], chat_id: int, message: str
-) -> Union[User, None]:
+) -> Union[Tuple[Dict, User], None]:
     """
     :param db:
     :param user:
     :param chat_id:
     :param message:
-    :return: chat companion for user
+    :return: new chat_message
     """
     if not user:
         return None
@@ -41,18 +41,20 @@ def _add_message(
         db.add(chat_message)
         db.commit()
 
-        return chat.user1 if chat.user1_id != user.id else chat.user2
+        return (
+            chat_message.as_dict(),
+            chat.user1 if chat.user1_id != user.id else chat.user2,
+        )
 
 
 def get_chats_with_last_message_by_user(user: User) -> Dict[Any, Any]:
     sql_statement = f"""
         select json_agg(json_build_object(
         'chat_id', chat_id,
-        'companion', companion,
-        'companion_image', companion_image,
+        'companion', json_build_object('id', id, 'name', name, 'surname', surname, '_phone_number', _phone_number, 'phone_country_code', phone_country_code, 'email', email, 'image', image),
         'last_message', last_message)) from (
             (
-                select chat.id as chat_id, chat.user2_id as companion, "user".image as companion_image,
+                select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
                 chat_message as last_message
                 from chat, chat_message, "user"
                 where chat.user1_id = {user.id} and chat_message.chat_id = chat.id and chat_message.created_at =
@@ -60,7 +62,7 @@ def get_chats_with_last_message_by_user(user: User) -> Dict[Any, Any]:
                 and "user".id = chat.user2_id
             ) union
             (
-                select chat.id as chat_id, chat.user1_id as companion, "user".image as companion_image,
+                select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
                 chat_message as last_message
                 from chat, chat_message, "user"
                 where chat.user2_id = {user.id} and chat_message.chat_id = chat.id and chat_message.created_at =
