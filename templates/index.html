@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <form action="">
+    <input id="token" type="text" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYXBjQGdtYWlsLmNvbSIsImV4cCI6MTY1MjI1NzMxNH0._w5EbaHV8dK2Fl7jaE3Q8i48ZK8QuYtsz5mI6XjuDqE">
+    <button type="button" onclick="auth()">Auth</button>
+    <input id="chat" type="number">
+    <button type="button" onclick="get_messages()">Get Messages</button>
+    <input id="input" type="text">
+    <button type="button" onclick="sendMessage()">Send</button>
+  </form>
+  <div id="messages">
+    <ul id="list">
+
+    </ul>
+  </div>
+  <script>
+    let ws = new WebSocket(`ws://localhost:8000/chat/ws/`);
+    function sendMessage() {
+      let message = document.getElementById("input").value;
+      let chat_id = document.getElementById("chat").value;
+      let data = {"request": {"type": "MESSAGE", "body": {"message": message, "chat_id": chat_id}}};
+      ws.send(JSON.stringify(data));
+    }
+    function auth(){
+    	let token = document.getElementById("token").value
+    	let data = {"request": {"type": "CONNECT", "body": {"token": token}}};
+    	ws.send(JSON.stringify(data));
+    }
+    // ws.onopen = function (event){
+    // 	let data = {"request": {"type": "CONNECT", "body": {"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYXBjQGdtYWlsLmNvbSIsImV4cCI6MTY1MTk5Njc1OX0.7gVHCW_uVf1OuvCnxtcwaAvZjuSuXvKNkted0puoPw4"}}};
+    // 	ws.send(JSON.stringify(data));
+    //
+    // };
+    function create_element(message){
+    	let list = document.getElementById("list");
+      let element = document.createElement('li');
+
+      let content = document.createTextNode(message);
+      element.appendChild(content);
+      list.appendChild(element);
+    }
+    function get_messages(){
+    	let chat_id = document.getElementById("chat").value;
+    	let data = {"request": {"type": "GET_MESSAGES", "body": {"chat_id": chat_id}}};
+    	ws.send(JSON.stringify(data));
+    }
+    ws.onmessage = function(event) {
+    	let data = JSON.parse(event.data);
+    	console.log(data)
+    	if (data.response.type === "AUTHENTICATION"){
+    		if (data.response.status === "FAILED"){
+          console.log("AUTHENTICATION FAILED")
+    			ws.close()
+        }
+    		else{
+    			console.log("AUTHENTICATION SUCCESS")
+        }
+      }
+      else if (data.response.type === "MESSAGE"){
+      	create_element(data.response.body.message)
+      }
+      // else if (data.response.type === "CHATS"){
+      //
+      // }
+      else if (data.response.type === "MESSAGES"){
+      	for(let message of data.response.body.messages){
+          create_element(message.content)
+        }
+      }
+    };
+  </script>
+</body>
+</html>

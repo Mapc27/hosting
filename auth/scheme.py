@@ -25,11 +25,7 @@ class User(BaseUser):
 
 class UserCreate(BaseUser):
     password: str
-    name: str
-    surname: str
-    phone_number: str
-    phone_country_code: str
-    birth_date: datetime.date
+    email: str
 
 
 class Login(BaseModel):
