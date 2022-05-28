@@ -683,6 +683,7 @@ class UserReview(Base, BaseMixin):
 class Chat(Base, BaseMixin):
     __tablename__ = "chat"
     __table_args__ = (
+        CheckConstraint("user1_id <> user2_id"),
         UniqueConstraint(
             "user1_id",
             "user2_id",
@@ -726,7 +727,6 @@ class Chat(Base, BaseMixin):
 class ChatMessage(Base, BaseMixin):
     __tablename__ = "chat_message"
     __table_args__ = (
-        CheckConstraint("user1_id != user2_id"),
         ForeignKeyConstraint(
             ("user_id",),
             ("user.id",),
@@ -747,6 +747,7 @@ class ChatMessage(Base, BaseMixin):
 
     user_id: int = Column(Integer, nullable=False)
     chat_id: int = Column(Integer, nullable=False)
+    read: bool = Column(Boolean, nullable=False, default=False)
 
     user: User = relationship("User", back_populates="messages", uselist=False)
     chat: Chat = relationship("Chat", back_populates="messages", uselist=False)
