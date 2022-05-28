@@ -16,17 +16,19 @@ def create_chat(
     db: Session = Depends(get_db),
 ) -> dict:
     user2: User = db.query(User).filter(User.id == chat_scheme.user_id).first()
-    if user2.id == chat_scheme.user_id:
+
+    if not user2:
+        return {"detail": f"No such user with user_id = {chat_scheme.user_id}"}
+
+    if user1.id == chat_scheme.user_id:
         return {"detail": "user_id is id of current user"}
 
-    if user2:
-        chat = (
-            db.query(Chat)
-            .filter(Chat.user1_id == user1.id, Chat.user2_id == user2.id)
-            .first()
-        )
-        if chat:
-            return {"chat_id": chat.id}
-        else:
-            return {"chat_id": create_chat_(user1, user2, db)}
-    return {"detail": f"No such user with user_id = {chat_scheme.user_id}"}
+    chat = (
+        db.query(Chat)
+        .filter(Chat.user1_id == user1.id, Chat.user2_id == user2.id)
+        .first()
+    )
+    if chat:
+        return {"chat_id": chat.id}
+    else:
+        return {"chat_id": create_chat_(user1, user2, db)}

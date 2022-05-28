@@ -119,8 +119,8 @@ async def process_request(data: dict, user: User) -> None:
             await send_chat_messages(data=data, user=user)
 
     except KeyError:
-        pass
-    return await send_bad_request(user)
+        return await send_bad_request(user)
+    return
 
 
 async def send_chats(user: User) -> None:
@@ -137,7 +137,7 @@ async def add_message_and_send_to_companion(data: dict, user: User) -> None:
         result = add_message_(user=user, chat_id=chat_id, message=message)
         if result:
             chat_message_dict, companion = result
-            await send_new_message(
+            return await send_new_message(
                 users=[user, companion],
                 chat_id=chat_id,
                 chat_message_dict=chat_message_dict,
@@ -145,7 +145,7 @@ async def add_message_and_send_to_companion(data: dict, user: User) -> None:
     response = {
         "response": {"type": "ERROR", "body": "Wrong chat_id or message is empty"}
     }
-    await manager.send_personal_json(json=response, user=user)
+    return await manager.send_personal_json(json=response, user=user)
 
 
 async def send_chat_messages(data: dict, user: User) -> None:
