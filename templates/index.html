@@ -6,7 +6,7 @@
 </head>
 <body>
   <form action="">
-    <input id="token" type="text" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYXBjQGdtYWlsLmNvbSIsImV4cCI6MTY1MjI1NzMxNH0._w5EbaHV8dK2Fl7jaE3Q8i48ZK8QuYtsz5mI6XjuDqE">
+    <input id="token" type="text" value="">
     <button type="button" onclick="auth()">Auth</button>
     <input id="chat" type="number">
     <button type="button" onclick="get_messages()">Get Messages</button>
@@ -62,14 +62,16 @@
         }
       }
       else if (data.response.type === "MESSAGE"){
-      	create_element(data.response.body.message)
+      	create_element(data.response.body.chat_message.content)
       }
       // else if (data.response.type === "CHATS"){
       //
       // }
       else if (data.response.type === "MESSAGES"){
-      	for(let message of data.response.body.messages){
-          create_element(message.content)
+      	if (typeof data.response.body.messages === 'object'){
+	        for(let message of data.response.body.messages){
+		        create_element(message.content)
+	        }
         }
       }
     };
