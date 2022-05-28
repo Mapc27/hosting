@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 72c0e4dbe1c3
+Revision ID: ff14d4f8fc70
 Revises:
-Create Date: 2022-05-10 10:29:09.874143
+Create Date: 2022-05-28 12:44:44.822456
 
 """
 import sqlalchemy_utils
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "72c0e4dbe1c3"
+revision = "ff14d4f8fc70"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -112,6 +112,7 @@ def upgrade():
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("user1_id", sa.Integer(), nullable=False),
         sa.Column("user2_id", sa.Integer(), nullable=False),
+        sa.CheckConstraint("user1_id <> user2_id"),
         sa.ForeignKeyConstraint(
             ["user1_id"],
             ["user.id"],
@@ -240,6 +241,7 @@ def upgrade():
         sa.Column("content", sa.String(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("chat_id", sa.Integer(), nullable=False),
+        sa.Column("read", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["chat_id"],
             ["chat.id"],
@@ -252,7 +254,7 @@ def upgrade():
             ["user.id"],
             name="fk_on_user",
             onupdate="CASCADE",
-            ondelete="SeT NULL",
+            ondelete="SET NULL",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
