@@ -49,27 +49,29 @@ def add_message_(
 
 def get_chats_with_last_message_by_user(user: User) -> Dict[Any, Any]:
     sql_statement = f"""
-        select json_agg(json_build_object(
-        'chat_id', chat_id,
-        'companion', json_build_object('id', id, 'name', name, 'surname', surname, '_phone_number', _phone_number, 'phone_country_code', phone_country_code, 'email', email, 'image', image),
-        'last_message', last_message)) from (
-            (
-                select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
-                chat_message as last_message
-                from chat left join chat_message on chat.id = chat_message.chat_id, "user"
-                where chat.user1_id = {user.id} and "user".id = chat.user2_id
-                  and (chat_message.created_at is null or chat_message.created_at =
-                (select max (chat_message.created_at) from chat_message where chat_id = chat.id))
-            ) union
-            (
-                select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
-                chat_message as last_message
-                from chat left outer join chat_message on chat.id = chat_message.chat_id, "user"
-                where chat.user2_id = {user.id} and "user".id = chat.user1_id
-                  and (chat_message.created_at is null or chat_message.created_at =
-                (select max (chat_message.created_at) from chat_message where chat_id = chat.id))
-            )
-        ) as subquery;
+    select json_agg(json_build_object(
+    'chat_id', chat_id,
+    'companion', json_build_object('id', id, 'name', name, 'surname', surname, '_phone_number', _phone_number, 'phone_country_code', phone_country_code, 'email', email, 'image', image),
+    'last_message', last_message,
+    'unread_message_count', (select count(id) from chat_message where chat_message.chat_id = subquery.chat_id and chat_message.user_id != {user.id} and chat_message.read = false)
+        )) from (
+        (
+            select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
+            chat_message as last_message
+            from chat left join chat_message on chat.id = chat_message.chat_id, "user"
+            where chat.user1_id = {user.id} and "user".id = chat.user2_id
+              and (chat_message.created_at is null or chat_message.created_at =
+            (select max (chat_message.created_at) from chat_message where chat_id = chat.id))
+        ) union
+        (
+            select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
+            chat_message as last_message
+            from chat left outer join chat_message on chat.id = chat_message.chat_id, "user"
+            where chat.user2_id = {user.id} and "user".id = chat.user1_id
+              and (chat_message.created_at is null or chat_message.created_at =
+            (select max (chat_message.created_at) from chat_message where chat_id = chat.id))
+        )
+    ) as subquery;
     """
 
     with next(get_db()) as db:
