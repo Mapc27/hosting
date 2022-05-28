@@ -19,7 +19,7 @@ def get_user_by_token(token: str) -> Union[User, None]:
     return None
 
 
-def _add_message(
+def add_message_(
     user: Union[User, None], chat_id: int, message: str
 ) -> Union[Tuple[Dict, User], None]:
     """
@@ -34,7 +34,7 @@ def _add_message(
 
     with next(get_db()) as db:
         chat: Chat = db.query(Chat).filter(Chat.id == chat_id).first()
-        if not chat or not (chat.user1_id == user.id or chat.user2_id == user.id):
+        if not chat or user.id not in [chat.user1_id, chat.user2_id]:
             return None
 
         chat_message = ChatMessage(content=message, user_id=user.id, chat_id=chat.id)
@@ -56,18 +56,18 @@ def get_chats_with_last_message_by_user(user: User) -> Dict[Any, Any]:
             (
                 select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
                 chat_message as last_message
-                from chat, chat_message, "user"
-                where chat.user1_id = {user.id} and chat_message.chat_id = chat.id and chat_message.created_at =
-                (select max (chat_message.created_at) from chat_message where chat_id = chat.id)
-                and "user".id = chat.user2_id
+                from chat left join chat_message on chat.id = chat_message.chat_id, "user"
+                where chat.user1_id = {user.id} and "user".id = chat.user2_id
+                  and (chat_message.created_at is null or chat_message.created_at =
+                (select max (chat_message.created_at) from chat_message where chat_id = chat.id))
             ) union
             (
                 select chat.id as chat_id, "user".id as id, "user".name as name, "user".surname as surname, "user"._phone_number as _phone_number, "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
                 chat_message as last_message
-                from chat, chat_message, "user"
-                where chat.user2_id = {user.id} and chat_message.chat_id = chat.id and chat_message.created_at =
-                (select max (chat_message.created_at) from chat_message where chat_id = chat.id)
-                and "user".id = chat.user1_id
+                from chat left outer join chat_message on chat.id = chat_message.chat_id, "user"
+                where chat.user2_id = {user.id} and "user".id = chat.user1_id
+                  and (chat_message.created_at is null or chat_message.created_at =
+                (select max (chat_message.created_at) from chat_message where chat_id = chat.id))
             )
         ) as subquery;
     """
@@ -80,21 +80,42 @@ def get_chats_with_last_message_by_user(user: User) -> Dict[Any, Any]:
     return result_dict
 
 
-def get_chat_messages(user: User, chat_id: int) -> Union[None, dict]:
+def get_chat_messages_and_mark_read(user: User, chat_id: int) -> Union[None, dict]:
     with next(get_db()) as db:
         chat: Chat = db.query(Chat).filter(Chat.id == chat_id).first()
-
-        if chat.user1_id != user.id and chat.user2_id != user.id:
+        if not chat:
             return None
+
+        if user.id not in [chat.user1_id, chat.user2_id]:
+            return None
+
+        mark_all_messages_as_read(user, chat_id, db)
 
         sql_statement = f"""
             select json_agg(json_build_object('id', id, 'created_at', created_at, 'updated_at', updated_at,
-            'content', content, 'user_id', user_id, 'chat_id', chat_id))
+            'content', content, 'user_id', user_id, 'chat_id', chat_id, 'read', read))
             from chat_message where chat_id = {chat_id};
         """
 
         result = db.execute(sql_statement)
+
     result_dict = {}
     for i in result:
         result_dict = i[0]
+        break
     return result_dict
+
+
+def mark_all_messages_as_read(user: User, chat_id: int, db: Session) -> None:
+    unread_messages = (
+        db.query(ChatMessage)
+        .filter(
+            ChatMessage.chat_id == chat_id,
+            ChatMessage.user_id != user.id,
+            ChatMessage.read == False,
+        )
+        .all()
+    )
+    for message in unread_messages:
+        message.read = True
+    db.commit()

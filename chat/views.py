@@ -4,12 +4,12 @@ from fastapi import APIRouter, WebSocket, Request, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
 from chat.services import (
-    _add_message,
+    add_message_,
     get_chats_with_last_message_by_user,
-    get_chat_messages,
+    get_chat_messages_and_mark_read,
     get_user_by_token,
 )
-from core.models import User, ChatMessage
+from core.models import User
 
 router = APIRouter(
     prefix="/chat",
@@ -104,34 +104,37 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         manager.disconnect(user=user)
 
 
+async def send_bad_request(user: User) -> None:
+    data = {"response": {"type": "ERROR", "body": "Bad request"}}
+    return await manager.send_personal_json(json=data, user=user)
+
+
 async def process_request(data: dict, user: User) -> None:
     try:
-        print(data)
         if data["request"]["type"] == "MESSAGE":
             await add_message_and_send_to_companion(data=data, user=user)
 
         elif data["request"]["type"] == "GET_MESSAGES":
+            # also will mark all messages as read
             await send_chat_messages(data=data, user=user)
+
     except KeyError:
         pass
-    return
+    return await send_bad_request(user)
 
 
 async def send_chats(user: User) -> None:
-    if user:
-        print(user)
-        chats = get_chats_with_last_message_by_user(user=user)
-        print(chats)
+    chats = get_chats_with_last_message_by_user(user=user)
 
-        data = {"response": {"type": "CHATS", "body": {"chats": chats}}}
-        return await manager.send_personal_json(json=data, user=user)
+    data = {"response": {"type": "CHATS", "body": {"chats": chats}}}
+    return await manager.send_personal_json(json=data, user=user)
 
 
 async def add_message_and_send_to_companion(data: dict, user: User) -> None:
     chat_id = data["request"]["body"]["chat_id"]
     message = data["request"]["body"]["message"]
     if chat_id and message:
-        result = _add_message(user=user, chat_id=chat_id, message=message)
+        result = add_message_(user=user, chat_id=chat_id, message=message)
         if result:
             chat_message_dict, companion = result
             await send_new_message(
@@ -139,14 +142,23 @@ async def add_message_and_send_to_companion(data: dict, user: User) -> None:
                 chat_id=chat_id,
                 chat_message_dict=chat_message_dict,
             )
+    response = {
+        "response": {"type": "ERROR", "body": "Wrong chat_id or message is empty"}
+    }
+    await manager.send_personal_json(json=response, user=user)
 
 
 async def send_chat_messages(data: dict, user: User) -> None:
     chat_id = data["request"]["body"]["chat_id"]
-    messages = get_chat_messages(user=user, chat_id=chat_id)
+
+    messages = get_chat_messages_and_mark_read(user=user, chat_id=chat_id)
+
     if messages:
         response = {"response": {"type": "MESSAGES", "body": {"messages": messages}}}
-        await manager.send_personal_json(json=response, user=user)
+    else:
+        response = {"response": {"type": "ERROR", "body": "Chat not found"}}
+
+    await manager.send_personal_json(json=response, user=user)
 
 
 async def send_new_message(
