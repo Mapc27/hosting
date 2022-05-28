@@ -151,12 +151,11 @@ async def add_message_and_send_to_companion(data: dict, user: User) -> None:
 async def send_chat_messages(data: dict, user: User) -> None:
     chat_id = data["request"]["body"]["chat_id"]
 
-    messages = get_chat_messages_and_mark_read(user=user, chat_id=chat_id)
+    messages: Union[None, str, dict] = get_chat_messages_and_mark_read(
+        user=user, chat_id=chat_id
+    )
 
-    if messages:
-        response = {"response": {"type": "MESSAGES", "body": {"messages": messages}}}
-    else:
-        response = {"response": {"type": "ERROR", "body": "Chat not found"}}
+    response = {"response": {"type": "MESSAGES", "body": {"messages": messages}}}
 
     await manager.send_personal_json(json=response, user=user)
 

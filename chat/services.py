@@ -80,14 +80,14 @@ def get_chats_with_last_message_by_user(user: User) -> Dict[Any, Any]:
     return result_dict
 
 
-def get_chat_messages_and_mark_read(user: User, chat_id: int) -> Union[None, dict]:
+def get_chat_messages_and_mark_read(user: User, chat_id: int) -> Union[None, dict, str]:
     with next(get_db()) as db:
         chat: Chat = db.query(Chat).filter(Chat.id == chat_id).first()
         if not chat:
-            return None
+            return "Chat not found"
 
         if user.id not in [chat.user1_id, chat.user2_id]:
-            return None
+            return "User not in chat"
 
         mark_all_messages_as_read(user, chat_id, db)
 
