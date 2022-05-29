@@ -21,7 +21,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import TSRANGE
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, composite, DeclarativeMeta, Mapped, registry
+from sqlalchemy.orm import relationship, DeclarativeMeta, Mapped, registry
 from sqlalchemy_utils import PhoneNumber
 from sqlalchemy_utils.types.email import EmailType
 
@@ -72,12 +72,12 @@ class Housing(Base, BaseMixin):
     name: str = Column(String(50), nullable=False)
     description: str = Column(String(500), nullable=False)
     address: str = Column(String, nullable=False)
-    status: Optional[bool] = Column(Boolean, default=False)
-    images: Optional[str] = Column(String)
+    status: Optional[bool] = Column(Boolean, nullable=False, default=False)
 
+    # must be required
     category_id: Optional[int] = Column(Integer)
     type_id: Optional[int] = Column(Integer)
-    user_id: Optional[int] = Column(Integer)
+    user_id: int = Column(Integer, nullable=False)
 
     calendar: "HousingCalendar" = relationship(
         "HousingCalendar", back_populates="housing", uselist=False
@@ -113,6 +113,9 @@ class Housing(Base, BaseMixin):
     )
     housing_features: List["HousingFeature"] = relationship(
         "HousingFeature", back_populates="housing", uselist=True, collection_class=list
+    )
+    housing_images: List["HousingImage"] = relationship(
+        "HousingImage", back_populates="housing", uselist=True, collection_class=list
     )
 
     def __repr__(self) -> str:
@@ -907,3 +910,38 @@ class HousingFeature(Base, BaseMixin):
             f"housing='{self.housing}', "
             f"feature='{self.feature}')>"
         )
+
+
+class HousingImage(Base, BaseMixin):
+    __tablename__ = "housing_image"
+    __table_args__ = (
+        UniqueConstraint("housing_id", "is_main"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
+
+    housing_id = Column(Integer, nullable=False)
+    file_name = Column(String, nullable=True)
+    is_main = Column(Boolean, nullable=True)
+
+    housing: Housing = relationship(
+        "Housing", back_populates="housing_images", uselist=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+        )
+
+    def as_dict(self) -> dict:
+        self_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}  # type: ignore
+        self_dict["created_at"] = str(self_dict["created_at"])
+        self_dict["updated_at"] = str(self_dict["updated_at"])
+        return self_dict
