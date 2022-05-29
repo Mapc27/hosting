@@ -25,3 +25,6 @@ def get_db() -> sessionmaker:
         yield db
     finally:
         db.close()
+
+
+MEDIA_URL = "/hosting/media/"
