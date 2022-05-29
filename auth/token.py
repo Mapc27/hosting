@@ -13,8 +13,8 @@ from auth.database import get_user_by_email
 from auth.hashed import verify_password
 from auth.scheme import TokenData
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
-ALGORITHM = os.environ.get('ALGORITHM')
+SECRET_KEY = os.environ.get("SECRET_KEY")
+ALGORITHM = os.environ.get("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/login")
@@ -56,7 +56,7 @@ async def get_current_user(data: str = Depends(oauth2_scheme)) -> User:
     return get_user_by_email(db, token_data.email)
 
 
-def authenticate_user(db, email: str, password: str):
+def authenticate_user(db, email: str, password: str) -> Union[User, bool]:
     user = get_user_by_email(db, email)
     if not user:
         return False
