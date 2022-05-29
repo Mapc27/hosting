@@ -3,11 +3,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette import status
 
-from core.models import User
 from app.settings import get_db
 from auth import scheme
 from auth.database import get_user_by_email, create_user
+from auth.scheme import Wishlist
+from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_
 from auth.token import verify_token, create_access_token, get_current_user
+from core.models import User
 
 router = APIRouter(prefix="/user", tags=["authentication"])
 
@@ -34,6 +36,37 @@ def create(user: scheme.UserCreate, db: Session = Depends(get_db)) -> User:
 
 
 @router.post("/logout")
-def logout(user: scheme.User = Depends(get_current_user)) -> scheme.TokenData:
+def logout(user: User = Depends(get_current_user)) -> scheme.TokenData:
     token_data = scheme.TokenData(email=user.email, expires=0)
     return token_data
+
+
+@router.get("/wishlist")
+def get_wishlist(
+    user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
+    return {"user_id": user.id, "wishlist": get_wishlist_(user, db)}
+
+
+@router.post("/wishlist")
+def create_wishlist(
+    wishlist: Wishlist,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    liked_housing = create_wishlist_(user, wishlist.housing_id, db)
+    if not liked_housing:
+        return {"detail": "Like already exists"}
+    return {"user_id": user.id, "wish": liked_housing.as_dict()}
+
+
+@router.delete("/wishlist")
+def delete_wishlist(
+    wishlist: Wishlist,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    liked_housing = delete_wishlist_(user, wishlist.housing_id, db)
+    if not liked_housing:
+        return {"detail": "Like doesn't exists"}
+    return {"user_id": user.id, "wish": liked_housing.as_dict()}

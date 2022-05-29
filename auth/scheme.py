@@ -31,3 +31,7 @@ class UserCreate(BaseUser):
 class Login(BaseModel):
     email: str
     password: str
+
+
+class Wishlist(BaseModel):
+    housing_id: int
