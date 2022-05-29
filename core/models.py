@@ -117,6 +117,9 @@ class Housing(Base, BaseMixin):
     housing_images: List["HousingImage"] = relationship(
         "HousingImage", back_populates="housing", uselist=True, collection_class=list
     )
+    housing_likes: List["LikedHousing"] = relationship(
+        "LikedHousing", back_populates="housing", uselist=True, collection_class=list
+    )
 
     def __repr__(self) -> str:
         return (
@@ -483,7 +486,6 @@ class User(Base, BaseMixin):
     image: Optional[str] = Column(String)
     password: str = Column(Text, nullable=False)
 
-    # chats
     housings: List[Housing] = relationship(
         "Housing", back_populates="user", uselist=True, collection_class=list
     )
@@ -498,6 +500,9 @@ class User(Base, BaseMixin):
     )
     messages: List["ChatMessage"] = relationship(
         "ChatMessage", back_populates="user", uselist=True, collection_class=list
+    )
+    liked_housings: List["LikedHousing"] = relationship(
+        "LikedHousing", back_populates="user", uselist=True, collection_class=list
     )
 
     def __repr__(self) -> str:
@@ -925,9 +930,9 @@ class HousingImage(Base, BaseMixin):
         ),
     )
 
-    housing_id = Column(Integer, nullable=False)
-    file_name = Column(String, nullable=True)
-    is_main = Column(Boolean, nullable=True)
+    housing_id: int = Column(Integer, nullable=False)
+    file_name: Optional[str] = Column(String, nullable=True)
+    is_main: Optional[bool] = Column(Boolean, nullable=True)
 
     housing: Housing = relationship(
         "Housing", back_populates="housing_images", uselist=False
@@ -938,6 +943,48 @@ class HousingImage(Base, BaseMixin):
             f"<{self.__class__.__name__}("
             f"id={self.id}, "
             f"housing='{self.housing}', "
+        )
+
+    def as_dict(self) -> dict:
+        self_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}  # type: ignore
+        self_dict["created_at"] = str(self_dict["created_at"])
+        self_dict["updated_at"] = str(self_dict["updated_at"])
+        return self_dict
+
+
+class LikedHousing(Base, BaseMixin):
+    __tablename__ = "liked_housing"
+    __table_args__ = (
+        UniqueConstraint("housing_id", "user_id"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ("user_id",),
+            ("user.id",),
+            name="fk_on_user",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
+    user_id: int = Column(Integer, nullable=False)
+    housing_id: int = Column(Integer, nullable=False)
+
+    housing: Housing = relationship(
+        "Housing", back_populates="housing_likes", uselist=False
+    )
+    user: "User" = relationship("User", back_populates="liked_housings", uselist=False)
+
+    def __repr__(self) -> str:
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+            f"user='{self.housing}', "
         )
 
     def as_dict(self) -> dict:
