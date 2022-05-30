@@ -3,10 +3,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette import status
 
+from auth.scheme import Profile
 from core.models import User
 from app.settings import get_db
 from auth import scheme
-from auth.database import get_user_by_email, create_user
+from auth.database import get_user_by_email, create_user, change_user_data
 from auth.token import verify_token, create_access_token, get_current_user
 
 router = APIRouter(prefix="/user", tags=["authentication"])
@@ -37,3 +38,17 @@ def create(user: scheme.UserCreate, db: Session = Depends(get_db)) -> User:
 def logout(user: scheme.User = Depends(get_current_user)) -> scheme.TokenData:
     token_data = scheme.TokenData(email=user.email, expires=0)
     return token_data
+
+
+@router.get("/profile")
+def profile(user: User = Depends(get_current_user)) -> User:
+    return user
+
+
+@router.post("/change_profile")
+def change_profile(
+    profile_scheme: Profile,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    return change_user_data(profile_scheme, user, db)

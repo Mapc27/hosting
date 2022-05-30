@@ -31,3 +31,9 @@ class UserCreate(BaseUser):
 class Login(BaseModel):
     email: str
     password: str
+
+
+class Profile(User):
+    phone_number: Optional[str] = None
+    phone_country_code: Optional[str] = None
+    birth_date: Optional[datetime.date] = None
