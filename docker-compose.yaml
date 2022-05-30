@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+#  nginx:
+#    image: lawyer-nginx:latest
+#    ports:
+#      - 80:80
+#    build:
+#      context: .
+#      dockerfile: deploy/nginx/Dockerfile
+#    depends_on:
+#      - app
+#    restart: always
+  app:
+    build:
+      context: .
+      dockerfile: deploy/python/Dockerfile
+    depends_on:
+      - db
+    ports:
+    - 8000:8000
+    restart: always
+
+  db:
+    image: postgres:13-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db:/var/lib/postgresql/data
+    restart: always
+
+
+volumes:
+  db:
