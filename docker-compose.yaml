@@ -1,16 +1,16 @@
 version: '3'
 
 services:
-#  nginx:
-#    image: lawyer-nginx:latest
-#    ports:
-#      - 80:80
-#    build:
-#      context: .
-#      dockerfile: deploy/nginx/Dockerfile
-#    depends_on:
-#      - app
-#    restart: always
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    build:
+      context: .
+      dockerfile: deploy/nginx/Dockerfile
+    depends_on:
+      - app
+    restart: always
   app:
     build:
       context: .
@@ -18,13 +18,16 @@ services:
     depends_on:
       - db
     ports:
-    - 8000:8000
+    - "8000:8000"
+    environment:
+      DATABASE_HOST: db
+
     restart: always
 
   db:
     image: postgres:13-alpine
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
