@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, Union, Tuple
 
 from fastapi import HTTPException
@@ -43,7 +44,9 @@ def add_message_(
 
 def get_chats_with_last_message_by_user(
     user: User, db: Session = next(get_db())
-) -> Dict[Any, Any]:
+) -> Any:
+
+    # писать это на ORM ...
     sql_statement = f"""
         select json_agg(json_build_object(
         'chat_id', chat_id,
@@ -59,24 +62,19 @@ def get_chats_with_last_message_by_user(
                   "user".phone_country_code as phone_country_code, "user".email as email, "user".image as image,
                 chat_message as last_message
                 from chat left join chat_message on chat.id = chat_message.chat_id, "user"
-                where (({user.id}, "user".id) = (chat.user1_id, chat.user2_id) or ({user.id}, "user".id) = (chat.user2_id, chat.user1_id))
+                where (({user.id}, "user".id) = (chat.user1_id, chat.user2_id)
+                 or ({user.id}, "user".id) = (chat.user2_id, chat.user1_id))
                   and (chat_message.created_at is null or chat_message.created_at =
                 (select max (chat_message.created_at) from chat_message where chat_id = chat.id))
         ) as subquery;
     """
 
-    result = db.execute(sql_statement)
-
-    result_dict = {}
-    for i in result:
-        result_dict = i[0]
-        break
-    return result_dict
+    return db.execute(sql_statement).first()[0]
 
 
 def get_chat_with_messages_and_mark_read(
     user: User, chat_id: int, db: Session = next(get_db())
-) -> Union[None, dict, str]:
+) -> Any:
     chat: Chat = db.query(Chat).filter(Chat.id == chat_id).first()
     if not chat:
         return "Chat not found"
@@ -86,6 +84,12 @@ def get_chat_with_messages_and_mark_read(
 
     mark_all_messages_as_read(user, chat_id, db)
 
+    # 0:00:00.010478
+    # тут слишком много питон кода
+    # chat_messages = db.query(ChatMessage).filter(ChatMessage.chat_id == 1)
+    # result_dict = {"chat_id": chat_id, "messages": [message.as_dict() for message in chat_messages]}
+
+    # тут БД возвращает json
     sql_statement = f"""
         select json_build_object(
                    'chat_id', {chat_id},
@@ -95,13 +99,7 @@ def get_chat_with_messages_and_mark_read(
         from chat_message where chat_id = {chat_id};
     """
 
-    result = db.execute(sql_statement)
-
-    result_dict = {}
-    for i in result:
-        result_dict = i[0]
-        break
-    return result_dict
+    return db.execute(sql_statement).first()[0]
 
 
 def mark_all_messages_as_read(user: User, chat_id: int, db: Session) -> None:
