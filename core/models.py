@@ -42,6 +42,34 @@ class BaseMixin(object):
     created_at: datetime = Column(DateTime, default=func.now())
     updated_at: datetime = Column(DateTime, default=func.now(), onupdate=func.now())
 
+    def as_dict(
+        self,
+        fields: Union[list, None] = None,
+        extend: Union[list, None] = None,
+        extra_fields: Union[list, None] = None,
+    ) -> dict:
+        if extra_fields is None:
+            extra_fields = []
+        self_dict: dict = {}
+
+        fields = [column.name for column in self.__table__.columns] if not fields else fields  # type: ignore
+        extend = [] if not extend else extend
+
+        for field in set(fields + extra_fields) - set(extend):
+            if hasattr(self, field):
+                attr = getattr(self, field)
+
+                if isinstance(attr, datetime):
+                    self_dict[field] = str(attr)
+                elif isinstance(attr, BaseMixin):
+                    self_dict[field] = attr.as_dict()
+                elif isinstance(attr, list):
+                    self_dict[field] = [obj.as_dict() for obj in attr]
+                else:
+                    self_dict[field] = attr
+
+        return self_dict
+
 
 class Housing(Base, BaseMixin):
     __tablename__ = "housing"
@@ -514,6 +542,18 @@ class User(Base, BaseMixin):
             f"email='{self.email}')>"
         )
 
+    def as_dict(
+        self,
+        fields: Union[list, None] = None,
+        extend: Union[list, None] = None,
+        extra_fields: Union[list, None] = None,
+    ) -> dict:
+        return super(User, self).as_dict(
+            fields=fields,
+            extend=extend + ["password"] if extend else ["password"],
+            extra_fields=extra_fields,
+        )
+
 
 class HousingRequest(Base, BaseMixin):
     __tablename__ = "request"
@@ -768,12 +808,6 @@ class ChatMessage(Base, BaseMixin):
             f"content='{self.content}', "
         )
 
-    def as_dict(self) -> dict:
-        self_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}  # type: ignore
-        self_dict["created_at"] = str(self_dict["created_at"])
-        self_dict["updated_at"] = str(self_dict["updated_at"])
-        return self_dict
-
 
 class ComfortCategory(Base, BaseMixin):
     __tablename__ = "comfort_category"
@@ -945,12 +979,6 @@ class HousingImage(Base, BaseMixin):
             f"housing='{self.housing}', "
         )
 
-    def as_dict(self) -> dict:
-        self_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}  # type: ignore
-        self_dict["created_at"] = str(self_dict["created_at"])
-        self_dict["updated_at"] = str(self_dict["updated_at"])
-        return self_dict
-
 
 class LikedHousing(Base, BaseMixin):
     __tablename__ = "liked_housing"
@@ -986,9 +1014,3 @@ class LikedHousing(Base, BaseMixin):
             f"housing='{self.housing}', "
             f"user='{self.housing}', "
         )
-
-    def as_dict(self) -> dict:
-        self_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns}  # type: ignore
-        self_dict["created_at"] = str(self_dict["created_at"])
-        self_dict["updated_at"] = str(self_dict["updated_at"])
-        return self_dict
