@@ -82,9 +82,7 @@ manager: ConnectionManager = ConnectionManager()
 async def get(
     request: Request, response_class: HTMLResponse = HTMLResponse
 ) -> HTMLResponse:
-    with open(
-        "C:\\Users\\Mapct\\projects\\infa\\hosting\\templates\\index.html", "r"
-    ) as html:
+    with open("templates/index.html", "r") as html:
         return HTMLResponse(html.read(), status_code=200)
 
 
