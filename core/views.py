@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, UploadFile, Form, File
+from fastapi import APIRouter, Depends, UploadFile, Form, File, HTTPException
 from sqlalchemy.orm import Session
+from starlette import status
 
 from app.settings import get_db
 from auth.token import get_current_user
@@ -11,9 +12,19 @@ from core.services import (
     get_chat_short_,
     create_housing_image_,
     delete_housing_image_,
+    set_main_housing_image_,
 )
 
 router = APIRouter(prefix="", tags=["core"])
+
+
+def check_permissions_on_housing(user: User, housing_id: int, db: Session) -> None:
+    if not get_housing(user, housing_id, db):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Permissions denied. User with id = {user.id} is not owner or housing with id = {housing_id} "
+            "doesn't exists ",
+        )
 
 
 @router.post("/chats")
@@ -62,13 +73,10 @@ async def create_housing_image(
     if not image:
         return {"detail": "No upload file sent"}
 
-    # check permissions
-    housing = get_housing(user, housing_id, db)
-    if not housing:
-        return {"detail": "You is not owner or housing doesn't exists"}
+    check_permissions_on_housing(user, housing_id, db)
 
     housing_image = await create_housing_image_(
-        image, housing, db, True if is_main else None
+        image, housing_id, db, True if is_main else None
     )
     return housing_image.as_dict()
 
@@ -80,14 +88,33 @@ async def delete_housing_image(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    # check permissions
-    housing = get_housing(user, housing_id, db)
-    if not housing:
-        return {"detail": "You is not owner or housing doesn't exists"}
+    check_permissions_on_housing(user, housing_id, db)
 
     housing_image = delete_housing_image_(housing_id, image_id, db)
     return (
         housing_image.as_dict()
         if housing_image
-        else {"detail": "This housing doesn't have this image"}
+        else {
+            "detail": f"This housing with id = {housing_id} doesn't have this image with id = {image_id}"
+        }
+    )
+
+
+@router.put("/housing/image/set_main")
+async def set_main_housing_image(
+    housing_id: int = Form(...),
+    image_id: int = Form(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    check_permissions_on_housing(user, housing_id, db)
+
+    housing_image = set_main_housing_image_(housing_id, image_id, db)
+    return (
+        housing_image.as_dict()
+        if housing_image
+        else {
+            "detail": f"This housing with id = {housing_id} doesn't have this image with id = {image_id}"
+            f" or main image"
+        }
     )

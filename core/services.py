@@ -67,25 +67,35 @@ async def save_image(file_path: str, image: UploadFile) -> None:
 
 
 def replace_main_housing_image(
-    housing_image: HousingImage, housing: Housing, db: Session
-) -> None:
-    db.rollback()
+    housing_image: HousingImage, housing_id: int, db: Session
+) -> Union[HousingImage, None]:
     main_image = (
         db.query(HousingImage)
-        .filter(HousingImage.is_main == True, HousingImage.housing_id == housing.id)
+        .filter(HousingImage.is_main == True, HousingImage.housing_id == housing_id)
         .first()
     )
+    if not main_image:
+        return None
     main_image.is_main = None
+    db.commit()
+    housing_image.is_main = True
     db.add(housing_image)
     db.commit()
+    return housing_image
 
 
 async def create_housing_image_(
-    image: UploadFile, housing: Housing, db: Session, is_main: Union[None, bool]
+    image: UploadFile, housing_id: int, db: Session, is_main: Union[None, bool]
 ) -> HousingImage:
+    if (
+        db.query(HousingImage).filter(HousingImage.housing_id == housing_id).count()
+        == 0
+    ):
+        is_main = True
+
     file_name = f'{uuid.uuid4()}.{image.filename.split(".")[-1]}'
     housing_image: HousingImage = HousingImage(
-        housing=housing, is_main=is_main, file_name=file_name
+        housing_id=housing_id, is_main=is_main, file_name=file_name
     )
     db.add(housing_image)
 
@@ -93,7 +103,8 @@ async def create_housing_image_(
         db.commit()
     # image with is_main = True already exists, so move is_main parameter ...
     except IntegrityError:
-        replace_main_housing_image(housing_image, housing, db)
+        db.rollback()
+        replace_main_housing_image(housing_image, housing_id, db)
 
     file_path = f"../{MEDIA_URL}housings/{housing_image.file_name}"
     await save_image(file_path, image)
@@ -125,3 +136,18 @@ def delete_housing_image_(
         ).first().is_main = True
     db.commit()
     return housing_image
+
+
+def set_main_housing_image_(
+    housing_id: int, image_id: int, db: Session
+) -> Union[None, HousingImage]:
+    housing_image: HousingImage = (
+        db.query(HousingImage)
+        .filter(HousingImage.id == image_id, HousingImage.housing_id == housing_id)
+        .first()
+    )
+
+    if not housing_image:
+        return None
+
+    return replace_main_housing_image(housing_image, housing_id, db)
