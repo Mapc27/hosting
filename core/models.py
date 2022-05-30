@@ -8,7 +8,6 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
-    func,
     Boolean,
     CheckConstraint,
     Time,
@@ -18,10 +17,12 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     ForeignKeyConstraint,
+    func as python_func,
 )
 from sqlalchemy.dialects.postgresql import TSRANGE
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, DeclarativeMeta, Mapped, registry
+from sqlalchemy.sql import func
 from sqlalchemy_utils import PhoneNumber
 from sqlalchemy_utils.types.email import EmailType
 
@@ -39,8 +40,10 @@ class Base(metaclass=DeclarativeMeta):
 
 class BaseMixin(object):
     id: int = Column(Integer, primary_key=True, autoincrement=True)
-    created_at: datetime = Column(DateTime, default=func.now())
-    updated_at: datetime = Column(DateTime, default=func.now(), onupdate=func.now())
+    created_at: datetime = Column(DateTime, server_default=func.now())
+    updated_at: datetime = Column(
+        DateTime, server_default=func.now(), onupdate=python_func.now()
+    )
 
     def as_dict(
         self,
