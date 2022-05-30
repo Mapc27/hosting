@@ -22,3 +22,19 @@ class HouseCreate(BaseModel):
     name: str
     address: str
     description: str
+
+
+class ComfortCategoryCreate(BaseModel):
+    name: str
+
+
+class ComfortCreate(BaseModel):
+    name: str
+
+
+class HousingPricingCreate(BaseModel):
+    per_night: int
+    cleaning: int
+    service: int
+    discount_per_week: int
+    discount_per_month: int

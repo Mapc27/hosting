@@ -2,13 +2,33 @@ from fastapi import APIRouter, Depends
 
 from app.settings import Session, get_db
 from auth.token import get_current_user
-from core.models import Chat, User, HousingCategory, HousingType, Housing
-from core.schemas import ChatCreate, HouseCreate, CategoryCreate, HousingTypeCreate
+from core.models import (
+    Chat,
+    User,
+    HousingCategory,
+    HousingType,
+    Housing,
+    ComfortCategory,
+    Comfort,
+)
+from core.schemas import (
+    ChatCreate,
+    HouseCreate,
+    CategoryCreate,
+    HousingTypeCreate,
+    ComfortCategoryCreate,
+    ComfortCreate,
+    HousingPricingCreate,
+)
 from core.services import (
     create_chat_,
     create_category,
     create_housing_type,
     create_housing,
+    create_comfort_category,
+    create_comfort,
+    create_housing_comfort,
+    create_housing_pricing,
 )
 
 router = APIRouter(prefix="", tags=["core"])
@@ -39,14 +59,17 @@ def create_chat(
         return {"chat_id": create_chat_(user1, user2, db)}
 
 
-@router.post("/create_housing")
+@router.post("/housing")
 def create_house(
     category_scheme: CategoryCreate,
     house_scheme: HouseCreate,
     type_scheme: HousingTypeCreate,
+    comfort_category_scheme: ComfortCategoryCreate,
+    comfort_scheme: ComfortCreate,
+    housing_pricing_scheme: HousingPricingCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Housing:
+) -> None:
     category: HousingCategory = (
         db.query(HousingCategory)
         .filter(HousingCategory.name == category_scheme.name)
@@ -61,4 +84,22 @@ def create_house(
     if not housing_type:
         housing_type = create_housing_type(type_scheme, db)
 
-    return create_housing(house_scheme, user, category, housing_type, db)
+    housing = create_housing(house_scheme, user, category, housing_type, db)
+
+    comfort_category: ComfortCategory = (
+        db.query(ComfortCategory)
+        .filter(ComfortCategory.name == comfort_category_scheme.name)
+        .first()
+    )
+    if not comfort_category:
+        comfort_category = create_comfort_category(comfort_category_scheme, db)
+
+    comfort: Comfort = (
+        db.query(Comfort).filter(Comfort.name == comfort_category_scheme.name).first()
+    )
+    if not comfort:
+        comfort = create_comfort(comfort_scheme, comfort_category, db)
+
+    create_housing_comfort(comfort, housing, db)
+
+    create_housing_pricing(housing_pricing_scheme, housing, db)
