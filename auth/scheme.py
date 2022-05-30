@@ -34,4 +34,13 @@ class Login(BaseModel):
 
 
 class Wishlist(BaseModel):
+    liked_housing_id: int
+
+
+class CreateWishlist(BaseModel):
     housing_id: int
+
+
+class DeleteWishlist(BaseModel):
+    housing_id: Optional[int]
+    liked_housing_id: Optional[int]

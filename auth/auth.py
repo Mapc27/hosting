@@ -6,8 +6,8 @@ from starlette import status
 from app.settings import get_db
 from auth import scheme
 from auth.database import get_user_by_email, create_user
-from auth.scheme import Wishlist
-from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_
+from auth.scheme import Wishlist, CreateWishlist, DeleteWishlist
+from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_, get_wish_
 from auth.token import verify_token, create_access_token, get_current_user
 from core.models import User
 
@@ -41,6 +41,18 @@ def logout(user: User = Depends(get_current_user)) -> scheme.TokenData:
     return token_data
 
 
+@router.get("/wish")
+def get_wish(
+    wishlist: Wishlist,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    return {
+        "user_id": user.id,
+        "wish": get_wish_(user, db, liked_housing_id=wishlist.liked_housing_id),
+    }
+
+
 @router.get("/wishlist")
 def get_wishlist(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
@@ -50,23 +62,34 @@ def get_wishlist(
 
 @router.post("/wishlist")
 def create_wishlist(
-    wishlist: Wishlist,
+    wishlist: CreateWishlist,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
     liked_housing = create_wishlist_(user, wishlist.housing_id, db)
     if not liked_housing:
         return {"detail": "Like already exists"}
-    return {"user_id": user.id, "wish": liked_housing.as_dict()}
+    return {
+        "user_id": user.id,
+        "wish": get_wish_(user, db, housing_id=wishlist.housing_id),
+    }
 
 
 @router.delete("/wishlist")
 def delete_wishlist(
-    wishlist: Wishlist,
+    wishlist: DeleteWishlist,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    liked_housing = delete_wishlist_(user, wishlist.housing_id, db)
+    if wishlist.liked_housing_id:
+        liked_housing = delete_wishlist_(
+            user, db, liked_housing_id=wishlist.liked_housing_id
+        )
+    elif wishlist.housing_id:
+        liked_housing = delete_wishlist_(user, db, housing_id=wishlist.housing_id)
+    else:
+        return {"detail": "required liked_housing_id or housing_id"}
+
     if not liked_housing:
         return {"detail": "Like doesn't exists"}
     return {"user_id": user.id, "wish": liked_housing.as_dict()}
