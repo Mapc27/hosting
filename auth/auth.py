@@ -35,7 +35,7 @@ async def login(
             detail="Invalid password or login",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not verify_password(user.password, user.password):
+    if not verify_password(request.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password or login",
