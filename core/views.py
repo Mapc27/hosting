@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, UploadFile, Form, File, HTTPException
 from starlette import status
 
@@ -33,9 +35,15 @@ from core.services import (
     create_housing_image_,
     delete_housing_image_,
     set_main_housing_image_,
+    get_pagination_data,
 )
 
 router = APIRouter(prefix="", tags=["core"])
+
+
+@router.get("/offers")
+def offers(db: Session = Depends(get_db), page: int = 0, limit: int = 50) -> Any:
+    return get_pagination_data(db, page, limit)
 
 
 def check_permissions_on_housing(user: User, housing_id: int, db: Session) -> None:
