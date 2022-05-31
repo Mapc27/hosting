@@ -47,7 +47,7 @@ async def login(
 
 
 @router.post("/create")
-def create(
+async def create(
     user_scheme: scheme.UserCreate, db: Session = Depends(get_db)
 ) -> Union[User, dict]:
     user = get_user_by_email(db, user_scheme.email)
@@ -59,13 +59,13 @@ def create(
 
 
 @router.post("/logout")
-def logout(user: User = Depends(get_current_user)) -> scheme.TokenData:
+async def logout(user: User = Depends(get_current_user)) -> scheme.TokenData:
     token_data = scheme.TokenData(email=user.email, expires=0)
     return token_data
 
 
 @router.get("/wish")
-def get_wish(
+async def get_wish(
     wishlist: Wishlist,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -77,14 +77,14 @@ def get_wish(
 
 
 @router.get("/wishlist")
-def get_wishlist(
+async def get_wishlist(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> dict:
     return {"user_id": user.id, "wishlist": get_wishlist_(user, db)}
 
 
 @router.post("/wishlist")
-def create_wishlist(
+async def create_wishlist(
     wishlist: CreateWishlist,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -99,7 +99,7 @@ def create_wishlist(
 
 
 @router.delete("/wishlist")
-def delete_wishlist(
+async def delete_wishlist(
     wishlist: DeleteWishlist,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -119,12 +119,12 @@ def delete_wishlist(
 
 
 @router.get("/profile")
-def profile(user: User = Depends(get_current_user)) -> User:
+async def profile(user: User = Depends(get_current_user)) -> User:
     return user
 
 
 @router.post("/change_profile")
-def change_profile(
+async def change_profile(
     profile_scheme: ChangeProfile,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -149,3 +149,13 @@ async def delete_user_image(
 ) -> dict:
     delete_user_image_(user, db)
     return user.as_dict()
+
+
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
+    other_user: User = db.query(User).filter(User.id == user_id).first()
+    if not other_user:
+        return {"detail": "User not found"}
+    return other_user.as_dict()
