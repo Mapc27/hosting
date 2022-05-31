@@ -33,6 +33,19 @@ class Login(BaseModel):
     password: str
 
 
+class Wishlist(BaseModel):
+    liked_housing_id: int
+
+
+class CreateWishlist(BaseModel):
+    housing_id: int
+
+
+class DeleteWishlist(BaseModel):
+    housing_id: Optional[int]
+    liked_housing_id: Optional[int]
+
+
 class Profile(User):
     phone_number: Optional[str] = None
     phone_country_code: Optional[str] = None

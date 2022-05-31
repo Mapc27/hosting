@@ -49,7 +49,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     token_data = verify_token(data, credentials_exception)
-    if token_data == "credentials_exception":
+    if not isinstance(token_data, TokenData):
         raise credentials_exception
 
     return get_user_by_email(db, token_data.email)
