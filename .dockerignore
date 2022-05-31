@@ -1,0 +1,10 @@
+.env
+*.env
+
+.pre-commit-config.yaml
+mypy.ini
+README.md
+media
+__pycache__
+.idea
+.vscode
