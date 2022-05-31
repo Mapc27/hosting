@@ -1,24 +1,20 @@
 image: atnartur/docker:latest
 
-
-variables:
-  DOCKER_HOST: http://172.17.0.1
-
 stages:
-#  - lint
+  - lint
   - build
   - deploy
 
-#lint:
-#  stage: lint
-#  image: python:3.8
-#  before_script: []
-#  script:
-#    - pip install -r lint_requirements.txt
-#    - pre-commit install
-#    - pre-commit run --all-files
-#  tags:
-#    - linux
+lint:
+  stage: lint
+  image: python:3.8
+  before_script: []
+  script:
+    - pip install -r lint_requirements.txt
+    - pre-commit install
+    - pre-commit run --all-files
+  tags:
+    - linux
 
 build:
   stage: build
