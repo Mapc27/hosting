@@ -21,7 +21,7 @@ build:
   stage: build
   script:
 #    - docker-compose -f docker-compose.yaml build db
-    - docker-compose -f docker-compose.prod.yaml build app
+    - sudo docker-compose -f docker-compose.yaml up
 #    - docker-compose -f docker-compose.yaml build nginx
   tags:
     - linux
