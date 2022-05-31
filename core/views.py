@@ -190,3 +190,8 @@ def create_house(
     create_housing_comfort(comfort, housing, db)
 
     create_housing_pricing(housing_pricing_scheme, housing, db)
+
+
+@router.get("/test")
+def test() -> str:
+    return "123"
