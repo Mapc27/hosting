@@ -5,7 +5,7 @@ from starlette import status
 
 from app.settings import get_db
 from auth import scheme
-from auth.scheme import Profile, Wishlist, CreateWishlist, DeleteWishlist
+from auth.scheme import Profile, Wishlist, CreateWishlist, DeleteWishlist, ChangeProfile
 from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_, get_wish_
 from auth.database import get_user_by_email, create_user, change_user_data
 from auth.token import verify_token, create_access_token, get_current_user
@@ -102,8 +102,8 @@ def profile(user: User = Depends(get_current_user)) -> User:
 
 @router.post("/change_profile")
 def change_profile(
-    profile_scheme: Profile,
+    profile_scheme: ChangeProfile,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> User:
+) -> dict:
     return change_user_data(profile_scheme, user, db)
