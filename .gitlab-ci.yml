@@ -3,11 +3,7 @@ image: atnartur/docker:latest
 stages:
   - lint
   - build
-  - push
   - deploy
-
-before_script:
-   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 lint:
   stage: lint
