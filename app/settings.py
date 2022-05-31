@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+
 load_dotenv()
 
 DATABASE_HOST = os.environ.get("DATABASE_HOST", "db")
@@ -27,4 +28,12 @@ def get_db() -> sessionmaker:
         db.close()
 
 
-MEDIA_URL = "/hosting/media/"
+MEDIA_FOLDER = "media"
+if not os.path.exists(f"{MEDIA_FOLDER}"):
+    os.mkdir(f"{MEDIA_FOLDER}")
+    os.mkdir(f"{MEDIA_FOLDER}/housings")
+    os.mkdir(f"{MEDIA_FOLDER}/users")
+elif not os.path.exists(f"{MEDIA_FOLDER}/housings"):
+    os.mkdir(f"{MEDIA_FOLDER}/housings")
+elif not os.path.exists(f"{MEDIA_FOLDER}/users"):
+    os.mkdir(f"{MEDIA_FOLDER}/users")
