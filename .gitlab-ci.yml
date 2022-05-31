@@ -1,7 +1,7 @@
 image: atnartur/docker:latest
 
 stages:
-  - lint
+#  - lint
   - build
   - deploy
 
@@ -19,17 +19,17 @@ lint:
 build:
   stage: build
   script:
-    - docker-compose -f docker-compose.prod.yml build app
-    - docker-compose -f docker-compose.prod.yml build nginx
+    - docker-compose -f docker-compose.prod.yaml build app
+    - docker-compose -f docker-compose.prod.yaml build nginx
   tags:
     - linux
 
-deploy_linux:
+deploy:
   stage: deploy
   script:
-    - docker-compose -f docker-compose.prod.yml stop
-    - docker-compose -f docker-compose.prod.yml rm -f
-    - docker-compose -f docker-compose.prod.yml up -d
+    - docker-compose -f docker-compose.prod.yaml stop
+    - docker-compose -f docker-compose.prod.yaml rm -f
+    - docker-compose -f docker-compose.prod.yaml up -d
   tags:
     - linux
   only:
