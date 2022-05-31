@@ -1,15 +1,64 @@
-stages:
-  - deploy
+#image: atnartur/docker:latest
 
-deploy:
-  stage: deploy
+stages:
+  - lint
+#  - build
+#  - push
+#  - deploy
+
+#before_script:
+#   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+lint:
+  stage: lint
+  image: python:3.8
+  before_script: []
   script:
-    # Скрипт сборки указан внутри системы и
-    # никаких дополнительных настроек не требуется
-    - echo
+    - pre-commit install
+    - pre-commit run --all-files
   tags:
-    - a.uenv.ru
-    - unienv_deploy
-  environment:
-    name: UniEnv
-    url: http://a.uenv.ru
+    - linux
+
+#build:
+#  stage: build
+#  script:
+#    - docker-compose -f docker-compose.prod.yml build app
+#    - docker-compose -f docker-compose.prod.yml build nginx
+#  tags:
+#    - linux
+#
+#push:
+#  stage: push
+#  script:
+#    - docker-compose -f docker-compose.prod.yml push
+#  tags:
+#    - linux
+#  only:
+#    - main
+#
+#deploy_linux:
+#  stage: deploy
+#  script:
+#    - docker-compose -f docker-compose.prod.yml pull
+#    - docker-compose -f docker-compose.prod.yml stop
+#    - docker-compose -f docker-compose.prod.yml rm -f
+#    - docker-compose -f docker-compose.prod.yml up -d
+#  tags:
+#    - linux
+#  only:
+#    - main
+#
+#deploy:
+#  stage: deploy
+#  script:
+#    # Скрипт сборки указан внутри системы и
+#    # никаких дополнительных настроек не требуется
+#    - echo
+#  tags:
+#    - a.uenv.ru
+#    - unienv_deploy
+#  environment:
+#    name: UniEnv
+#    url: http://a.uenv.ru
+#  only:
+#    - main
