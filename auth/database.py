@@ -47,7 +47,7 @@ def change_user_data(profile_scheme: ChangeProfile, user: User, db: Session) -> 
         if verify_password(profile_scheme.old_password, user.password):
             user.password = get_password_hash(profile_scheme.new_password)
         else:
-            return {"detail": "The entered password is incorrect"}
+            return {"detail": "Invalid password"}
 
     db.add(user)
     db.commit()

@@ -2,13 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette import status
+from typing import Union
 
 from app.settings import get_db
 from auth import scheme
+from auth.hashed import verify_password
 from auth.scheme import Profile, Wishlist, CreateWishlist, DeleteWishlist, ChangeProfile
 from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_, get_wish_
 from auth.database import get_user_by_email, create_user, change_user_data
-from auth.token import verify_token, create_access_token, get_current_user
+from auth.token import (
+    verify_token,
+    create_access_token,
+    get_current_user,
+)
 from core.models import User
 
 router = APIRouter(prefix="/user", tags=["authentication"])
@@ -19,7 +25,13 @@ async def login(
     request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ) -> dict:
     user = get_user_by_email(db, request.username)
-    if not user or not verify_token(user.password, request.password):
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password or login",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not verify_password(user.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password or login",
@@ -31,8 +43,15 @@ async def login(
 
 
 @router.post("/create")
-def create(user: scheme.UserCreate, db: Session = Depends(get_db)) -> User:
-    return create_user(db, user)
+def create(
+    user_scheme: scheme.UserCreate, db: Session = Depends(get_db)
+) -> Union[User, dict]:
+    user = get_user_by_email(db, user_scheme.email)
+    if user:
+        return {
+            "detail": "User already exists",
+        }
+    return create_user(db, user_scheme)
 
 
 @router.post("/logout")
