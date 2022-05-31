@@ -1,9 +1,14 @@
+import os
+import uuid
 from typing import Union
 
+from fastapi import UploadFile
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.settings import MEDIA_FOLDER
 from core.models import LikedHousing, User, Housing, HousingImage
+from core.services import save_image
 
 
 def get_wishlist_(user: User, db: Session) -> Union[list, None]:
@@ -118,3 +123,32 @@ def delete_wishlist_(
     db.delete(liked_housing)
     db.commit()
     return liked_housing
+
+
+async def create_user_image_(image: UploadFile, user: User, db: Session) -> User:
+    if user.image:
+        delete_user_image_(user, db)
+    file_name = f'{uuid.uuid4()}.{image.filename.split(".")[-1]}'
+    user.image = file_name
+    db.add(user)
+    db.commit()
+
+    file_path = f"{MEDIA_FOLDER}/users/{file_name}"
+
+    await save_image(file_path, image)
+
+    return user
+
+
+def delete_user_image_(user: User, db: Session) -> None:
+    if not user.image:
+        return None
+
+    file_path = f"{MEDIA_FOLDER}/users/{user.image}"
+    try:
+        os.remove(file_path)
+    except FileNotFoundError:
+        print(FileNotFoundError)
+    user.image = None
+    db.add(user)
+    db.commit()

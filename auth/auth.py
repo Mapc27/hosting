@@ -1,13 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette import status
 
 from app.settings import get_db
 from auth import scheme
-from auth.scheme import Profile, Wishlist, CreateWishlist, DeleteWishlist
-from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_, get_wish_
 from auth.database import get_user_by_email, create_user, change_user_data
+from auth.scheme import Profile, Wishlist, CreateWishlist, DeleteWishlist
+from auth.services import (
+    create_wishlist_,
+    get_wishlist_,
+    delete_wishlist_,
+    get_wish_,
+    create_user_image_,
+    delete_user_image_,
+)
 from auth.token import verify_token, create_access_token, get_current_user
 from core.models import User
 
@@ -107,3 +114,22 @@ def change_profile(
     db: Session = Depends(get_db),
 ) -> User:
     return change_user_data(profile_scheme, user, db)
+
+
+@router.post("/image")
+async def create_user_image(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    image: UploadFile = File(...),
+) -> dict:
+    await create_user_image_(image, user, db)
+    return user.as_dict()
+
+
+@router.delete("/image")
+async def delete_user_image(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    delete_user_image_(user, db)
+    return user.as_dict()

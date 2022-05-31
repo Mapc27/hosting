@@ -1,17 +1,12 @@
 from fastapi import APIRouter, Depends, UploadFile, Form, File, HTTPException
-from sqlalchemy.orm import Session
 from starlette import status
 
 from app.settings import Session, get_db
 from auth.token import get_current_user
-from core.models import User
-from core.schemas import ChatCreate
 from core.models import (
-    Chat,
     User,
     HousingCategory,
     HousingType,
-    Housing,
     ComfortCategory,
     Comfort,
 )
