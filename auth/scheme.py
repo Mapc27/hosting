@@ -44,3 +44,9 @@ class CreateWishlist(BaseModel):
 class DeleteWishlist(BaseModel):
     housing_id: Optional[int]
     liked_housing_id: Optional[int]
+
+
+class Profile(User):
+    phone_number: Optional[str] = None
+    phone_country_code: Optional[str] = None
+    birth_date: Optional[datetime.date] = None

@@ -5,9 +5,9 @@ from starlette import status
 
 from app.settings import get_db
 from auth import scheme
-from auth.database import get_user_by_email, create_user
-from auth.scheme import Wishlist, CreateWishlist, DeleteWishlist
+from auth.scheme import Profile, Wishlist, CreateWishlist, DeleteWishlist
 from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_, get_wish_
+from auth.database import get_user_by_email, create_user, change_user_data
 from auth.token import verify_token, create_access_token, get_current_user
 from core.models import User
 
@@ -93,3 +93,17 @@ def delete_wishlist(
     if not liked_housing:
         return {"detail": "Like doesn't exists"}
     return {"user_id": user.id, "wish": liked_housing.as_dict()}
+
+
+@router.get("/profile")
+def profile(user: User = Depends(get_current_user)) -> User:
+    return user
+
+
+@router.post("/change_profile")
+def change_profile(
+    profile_scheme: Profile,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    return change_user_data(profile_scheme, user, db)
