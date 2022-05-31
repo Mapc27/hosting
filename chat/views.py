@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from chat.services import (
     add_message_,
     get_chats_with_last_message_by_user,
-    get_chat_messages_and_mark_read,
+    get_chat_with_messages_and_mark_read,
     get_user_by_token,
 )
 from core.models import User
@@ -82,9 +82,7 @@ manager: ConnectionManager = ConnectionManager()
 async def get(
     request: Request, response_class: HTMLResponse = HTMLResponse
 ) -> HTMLResponse:
-    with open(
-        "C:\\Users\\Mapct\\projects\\infa\\hosting\\templates\\index.html", "r"
-    ) as html:
+    with open("templates/index.html", "r") as html:
         return HTMLResponse(html.read(), status_code=200)
 
 
@@ -151,11 +149,11 @@ async def add_message_and_send_to_companion(data: dict, user: User) -> None:
 async def send_chat_messages(data: dict, user: User) -> None:
     chat_id = data["request"]["body"]["chat_id"]
 
-    messages: Union[None, str, dict] = get_chat_messages_and_mark_read(
+    chat_with_messages: Union[None, str, dict] = get_chat_with_messages_and_mark_read(
         user=user, chat_id=chat_id
     )
 
-    response = {"response": {"type": "MESSAGES", "body": {"messages": messages}}}
+    response = {"response": {"type": "MESSAGES", "body": chat_with_messages}}
 
     await manager.send_personal_json(json=response, user=user)
 
