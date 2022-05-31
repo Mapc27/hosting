@@ -30,7 +30,7 @@ deploy:
   stage: deploy
   script:
 #    - sudo docker-compose -f docker-compose.yaml stop
-    - sudo docker-compose -f docker-compose.yaml rm -f
+#    - sudo docker-compose -f docker-compose.yaml rm -f
     - sudo docker-compose -f docker-compose.yaml up -d
   tags:
     - linux
