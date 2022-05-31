@@ -23,6 +23,8 @@ build:
     - sudo docker-compose -f docker-compose.yaml build db
     - sudo docker-compose -f docker-compose.yaml build app
     - sudp docker-compose -f docker-compose.yaml build nginx
+  variables:
+    DOCKER_HOST: http://172.17.0.1
   tags:
     - linux
 
