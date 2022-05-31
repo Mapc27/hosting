@@ -21,6 +21,8 @@ build:
   script:
     - docker-compose -f docker-compose.prod.yaml build app
     - docker-compose -f docker-compose.prod.yaml build nginx
+  variables:
+    DOCKER_HOST: tcp://docker:2375
   tags:
     - linux
 
