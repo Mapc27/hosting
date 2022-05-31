@@ -1,6 +1,6 @@
 import os
 import uuid
-from typing import Union
+from typing import Union, Any
 
 from fastapi import UploadFile
 from sqlalchemy.exc import IntegrityError
@@ -27,6 +27,11 @@ from core.schemas import (
     ComfortCreate,
     HousingPricingCreate,
 )
+
+
+def get_pagination_data(db: Session, page: int = 0, limit: int = 10) -> Any:
+    data = db.query(Housing).offset(page).limit(limit).all()
+    return data
 
 
 def get_chat_short_(user_id: int, chat_id: int, db: Session) -> dict:
