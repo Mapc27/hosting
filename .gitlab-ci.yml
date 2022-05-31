@@ -24,8 +24,6 @@ build:
     - sudo docker-compose -f docker-compose.yaml build nginx
   tags:
     - linux
-  variables:
-    DOCKER_HOST: tcp://localhost:2376
 
 #deploy:
 #  stage: deploy
