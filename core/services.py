@@ -18,6 +18,9 @@ from core.models import (
     HousingComfort,
     HousingPricing,
     HousingImage,
+    Characteristic,
+    Rule,
+    HousingRule,
 )
 from core.schemas import (
     HouseCreate,
@@ -73,7 +76,9 @@ def create_chat_(user1: User, user2: User, db: Session) -> Union[Chat, None]:
     return chat
 
 
-def get_housing(user: User, housing_id: int, db: Session) -> Union[None, Housing]:
+def get_housing_by_user(
+    user: User, housing_id: int, db: Session
+) -> Union[None, Housing]:
     if not user:
         return None
     housing: Housing = (
@@ -261,3 +266,44 @@ def create_housing_pricing(
     db.add(housing_pricing)
     db.commit()
     return housing_pricing
+
+
+def get_housing_(housing_id: int, db: Session) -> dict:
+    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    if not housing:
+        return {"detail": "Housing doesn't exists"}
+    characteristics = (
+        db.query(Characteristic).filter(Characteristic.housing_id == housing_id).all()
+    )
+    characteristics = [
+        i.as_dict(extra_fields=["characteristic_type"]) for i in characteristics
+    ]
+
+    rules = (
+        db.query(HousingRule, Rule)
+        .filter(HousingRule.housing_id == housing_id, HousingRule.id == Rule.id)
+        .all()
+    )
+    rules = [i.Rule.as_dict(extend=["updated_at", "created_at"]) for i in rules]
+
+    comforts = (
+        db.query(HousingComfort, Comfort, ComfortCategory)
+        .filter(
+            HousingComfort.housing_id == housing_id,
+            Comfort.category_id == ComfortCategory.id,
+            HousingComfort.comfort_id == Comfort.id,
+        )
+        .all()
+    )
+
+    comforts = [
+        i.Comfort.as_dict(extend=["updated_at", "created_at"]) for i in comforts
+    ]
+
+    housing_dict = housing.as_dict(
+        extra_fields=["user", "housing_images", "type", "calendar", "pricing"]
+    )
+    housing_dict["characteristics"] = characteristics
+    housing_dict["rules"] = rules
+    housing_dict["comforts"] = comforts
+    return housing_dict

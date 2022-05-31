@@ -30,12 +30,13 @@ from core.services import (
     create_comfort,
     create_housing_comfort,
     create_housing_pricing,
-    get_housing,
+    get_housing_by_user,
     get_chat_short_,
     create_housing_image_,
     delete_housing_image_,
     set_main_housing_image_,
     get_pagination_data,
+    get_housing_,
 )
 
 router = APIRouter(prefix="", tags=["core"])
@@ -47,7 +48,7 @@ def offers(db: Session = Depends(get_db), page: int = 0, limit: int = 50) -> Any
 
 
 def check_permissions_on_housing(user: User, housing_id: int, db: Session) -> None:
-    if not get_housing(user, housing_id, db):
+    if not get_housing_by_user(user, housing_id, db):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Permissions denied. User with id = {user.id} is not owner or housing with id = {housing_id} "
@@ -193,3 +194,8 @@ def create_house(
     create_housing_comfort(comfort, housing, db)
 
     create_housing_pricing(housing_pricing_scheme, housing, db)
+
+
+@router.get("/housing/{housing_id}")
+def get_housing(housing_id: int, db: Session = Depends(get_db)) -> dict:
+    return get_housing_(housing_id, db)
