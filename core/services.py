@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.settings import MEDIA_URL
+from app.settings import MEDIA_FOLDER
 from core.models import (
     Chat,
     User,
@@ -125,7 +125,8 @@ async def create_housing_image_(
         db.rollback()
         replace_main_housing_image(housing_image, housing_id, db)
 
-    file_path = f"../{MEDIA_URL}housings/{housing_image.file_name}"
+    file_path = f"{MEDIA_FOLDER}/housings/{housing_image.file_name}"
+
     await save_image(file_path, image)
 
     return housing_image
@@ -141,7 +142,7 @@ def delete_housing_image_(
     )
     if not housing_image:
         return None
-    file_path = f"../{MEDIA_URL}housings/{housing_image.file_name}"
+    file_path = f"{MEDIA_FOLDER}/housings/{housing_image.file_name}"
     try:
         os.remove(file_path)
     except FileNotFoundError:
