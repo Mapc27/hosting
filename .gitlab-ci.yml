@@ -1,4 +1,4 @@
-image: docker/compose
+image: atnartur/docker:latest
 
 stages:
 #  - lint
