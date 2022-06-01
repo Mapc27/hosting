@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 72c0e4dbe1c3
+Revision ID: 3be945230553
 Revises:
-Create Date: 2022-05-10 10:29:09.874143
+Create Date: 2022-05-30 13:39:09.578088
 
 """
 import sqlalchemy_utils
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "72c0e4dbe1c3"
+revision = "3be945230553"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,32 +22,48 @@ def upgrade():
     op.create_table(
         "characteristic_type",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "comfort_category",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "feature",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "housing_category",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("description", sa.String(length=100), nullable=False),
         sa.Column("level", sa.Integer(), nullable=False),
@@ -65,8 +81,12 @@ def upgrade():
     op.create_table(
         "housing_type",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("description", sa.String(length=100), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -74,24 +94,36 @@ def upgrade():
     op.create_table(
         "review_category",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "rule",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "user",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(), nullable=True),
         sa.Column("surname", sa.String(), nullable=True),
         sa.Column("_phone_number", sa.Unicode(length=255), nullable=True),
@@ -108,10 +140,15 @@ def upgrade():
     op.create_table(
         "chat",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("user1_id", sa.Integer(), nullable=False),
         sa.Column("user2_id", sa.Integer(), nullable=False),
+        sa.CheckConstraint("user1_id <> user2_id"),
         sa.ForeignKeyConstraint(
             ["user1_id"],
             ["user.id"],
@@ -132,8 +169,12 @@ def upgrade():
     op.create_table(
         "comfort",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("category_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -148,16 +189,19 @@ def upgrade():
     op.create_table(
         "housing",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("description", sa.String(length=500), nullable=False),
         sa.Column("address", sa.String(), nullable=False),
-        sa.Column("status", sa.Boolean(), nullable=True),
-        sa.Column("images", sa.String(), nullable=True),
+        sa.Column("status", sa.Boolean(), nullable=False),
         sa.Column("category_id", sa.Integer(), nullable=True),
         sa.Column("type_id", sa.Integer(), nullable=True),
-        sa.Column("user_id", sa.Integer(), nullable=True),
+        sa.Column("user_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["category_id"],
             ["housing_category.id"],
@@ -184,8 +228,12 @@ def upgrade():
     op.create_table(
         "user_review",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("content", sa.String(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("reviewer_id", sa.Integer(), nullable=False),
@@ -209,8 +257,12 @@ def upgrade():
     op.create_table(
         "characteristic",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("amount", sa.Integer(), nullable=False),
         sa.Column("housing_id", sa.Integer(), nullable=False),
         sa.Column("characteristic_type_id", sa.Integer(), nullable=False),
@@ -235,11 +287,16 @@ def upgrade():
     op.create_table(
         "chat_message",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("content", sa.String(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("chat_id", sa.Integer(), nullable=False),
+        sa.Column("read", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["chat_id"],
             ["chat.id"],
@@ -252,15 +309,19 @@ def upgrade():
             ["user.id"],
             name="fk_on_user",
             onupdate="CASCADE",
-            ondelete="SeT NULL",
+            ondelete="SET NULL",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "housing_calendar",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("during", postgresql.TSRANGE(), nullable=False),
         sa.Column("min_nights", sa.Integer(), nullable=False),
         sa.Column("max_nights", sa.Integer(), nullable=False),
@@ -283,8 +344,12 @@ def upgrade():
     op.create_table(
         "housing_comfort",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("housing_id", sa.Integer(), nullable=False),
         sa.Column("comfort_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -307,8 +372,12 @@ def upgrade():
     op.create_table(
         "housing_feature",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("housing_id", sa.Integer(), nullable=False),
         sa.Column("feature_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -331,8 +400,12 @@ def upgrade():
     op.create_table(
         "housing_history",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("during", postgresql.TSRANGE(), nullable=False),
         sa.Column("housing_id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -355,10 +428,36 @@ def upgrade():
         sa.UniqueConstraint("id", "user_id"),
     )
     op.create_table(
+        "housing_image",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column("housing_id", sa.Integer(), nullable=False),
+        sa.Column("file_name", sa.String(), nullable=True),
+        sa.Column("is_main", sa.Boolean(), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["housing_id"],
+            ["housing.id"],
+            name="fk_on_housing",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("housing_id", "is_main"),
+    )
+    op.create_table(
         "housing_pricing",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("per_night", sa.Integer(), nullable=False),
         sa.Column("cleaning", sa.Integer(), nullable=False),
         sa.Column("service", sa.Integer(), nullable=False),
@@ -389,8 +488,12 @@ def upgrade():
     op.create_table(
         "housing_rule",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("housing_id", sa.Integer(), nullable=False),
         sa.Column("rule_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -411,10 +514,42 @@ def upgrade():
         sa.UniqueConstraint("housing_id", "rule_id"),
     )
     op.create_table(
+        "liked_housing",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("housing_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["housing_id"],
+            ["housing.id"],
+            name="fk_on_housing",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["user.id"],
+            name="fk_on_user",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("housing_id", "user_id"),
+    )
+    op.create_table(
         "request",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("during", postgresql.TSRANGE(), nullable=False),
         sa.Column("number_of_guests", sa.Integer(), nullable=False),
         sa.Column("message", sa.String(), nullable=True),
@@ -444,8 +579,12 @@ def upgrade():
     op.create_table(
         "review_grade",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("housing_id", sa.Integer(), nullable=False),
         sa.Column("review_category_id", sa.Integer(), nullable=False),
         sa.Column("grade", sa.Float(), nullable=False),
@@ -470,8 +609,12 @@ def upgrade():
     op.create_table(
         "housing_review",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
         sa.Column("content", sa.String(), nullable=False),
         sa.Column("history_id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -493,8 +636,10 @@ def downgrade():
     op.drop_table("housing_review")
     op.drop_table("review_grade")
     op.drop_table("request")
+    op.drop_table("liked_housing")
     op.drop_table("housing_rule")
     op.drop_table("housing_pricing")
+    op.drop_table("housing_image")
     op.drop_table("housing_history")
     op.drop_table("housing_feature")
     op.drop_table("housing_comfort")

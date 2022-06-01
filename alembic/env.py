@@ -1,24 +1,22 @@
-import os
 from logging.config import fileConfig
 
 from alembic import context
-from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
+from app.settings import (
+    DATABASE_PASSWORD,
+    DATABASE_USER,
+    DATABASE_HOST,
+    DATABASE_PORT,
+    DATABASE_NAME,
+)
 from core.models import Base
-
-load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-DATABASE_HOST = os.environ.get("DATABASE_HOST")
-DATABASE_NAME = os.environ.get("DATABASE_NAME")
-DATABASE_PORT = os.environ.get("DATABASE_PORT")
-DATABASE_USER = os.environ.get("DATABASE_USER")
-DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
 config.set_main_option(
     "sqlalchemy.url",

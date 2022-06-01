@@ -8,7 +8,6 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
-    func,
     Boolean,
     CheckConstraint,
     Time,
@@ -18,10 +17,12 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     ForeignKeyConstraint,
+    func as python_func,
 )
 from sqlalchemy.dialects.postgresql import TSRANGE
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, composite, DeclarativeMeta, Mapped, registry
+from sqlalchemy.orm import relationship, DeclarativeMeta, Mapped, registry
+from sqlalchemy.sql import func
 from sqlalchemy_utils import PhoneNumber
 from sqlalchemy_utils.types.email import EmailType
 
@@ -39,8 +40,38 @@ class Base(metaclass=DeclarativeMeta):
 
 class BaseMixin(object):
     id: int = Column(Integer, primary_key=True, autoincrement=True)
-    created_at: datetime = Column(DateTime, default=func.now())
-    updated_at: datetime = Column(DateTime, default=func.now(), onupdate=func.now())
+    created_at: datetime = Column(DateTime, server_default=func.now())
+    updated_at: datetime = Column(
+        DateTime, server_default=func.now(), onupdate=python_func.now()
+    )
+
+    def as_dict(
+        self,
+        fields: Union[list, None] = None,
+        extend: Union[list, None] = None,
+        extra_fields: Union[list, None] = None,
+    ) -> dict:
+        if extra_fields is None:
+            extra_fields = []
+        self_dict: dict = {}
+
+        fields = [column.name for column in self.__table__.columns] if not fields else fields  # type: ignore
+        extend = [] if not extend else extend
+
+        for field in set(fields + extra_fields) - set(extend):
+            if hasattr(self, field):
+                attr = getattr(self, field)
+
+                if isinstance(attr, datetime):
+                    self_dict[field] = str(attr)
+                elif isinstance(attr, BaseMixin):
+                    self_dict[field] = attr.as_dict()
+                elif isinstance(attr, list):
+                    self_dict[field] = [obj.as_dict() for obj in attr]
+                else:
+                    self_dict[field] = attr
+
+        return self_dict
 
 
 class Housing(Base, BaseMixin):
@@ -72,12 +103,12 @@ class Housing(Base, BaseMixin):
     name: str = Column(String(50), nullable=False)
     description: str = Column(String(500), nullable=False)
     address: str = Column(String, nullable=False)
-    status: Optional[bool] = Column(Boolean, default=False)
-    images: Optional[str] = Column(String)
+    status: Optional[bool] = Column(Boolean, nullable=False, default=False)
 
+    # must be required
     category_id: Optional[int] = Column(Integer)
     type_id: Optional[int] = Column(Integer)
-    user_id: Optional[int] = Column(Integer)
+    user_id: int = Column(Integer, nullable=False)
 
     calendar: "HousingCalendar" = relationship(
         "HousingCalendar", back_populates="housing", uselist=False
@@ -113,6 +144,12 @@ class Housing(Base, BaseMixin):
     )
     housing_features: List["HousingFeature"] = relationship(
         "HousingFeature", back_populates="housing", uselist=True, collection_class=list
+    )
+    housing_images: List["HousingImage"] = relationship(
+        "HousingImage", back_populates="housing", uselist=True, collection_class=list
+    )
+    housing_likes: List["LikedHousing"] = relationship(
+        "LikedHousing", back_populates="housing", uselist=True, collection_class=list
     )
 
     def __repr__(self) -> str:
@@ -480,7 +517,6 @@ class User(Base, BaseMixin):
     image: Optional[str] = Column(String)
     password: str = Column(Text, nullable=False)
 
-    # chats
     housings: List[Housing] = relationship(
         "Housing", back_populates="user", uselist=True, collection_class=list
     )
@@ -496,6 +532,9 @@ class User(Base, BaseMixin):
     messages: List["ChatMessage"] = relationship(
         "ChatMessage", back_populates="user", uselist=True, collection_class=list
     )
+    liked_housings: List["LikedHousing"] = relationship(
+        "LikedHousing", back_populates="user", uselist=True, collection_class=list
+    )
 
     def __repr__(self) -> str:
         return (
@@ -504,6 +543,18 @@ class User(Base, BaseMixin):
             f"name='{self.name}', "
             f"surname='{self.surname}', "
             f"email='{self.email}')>"
+        )
+
+    def as_dict(
+        self,
+        fields: Union[list, None] = None,
+        extend: Union[list, None] = None,
+        extra_fields: Union[list, None] = None,
+    ) -> dict:
+        return super(User, self).as_dict(
+            fields=fields,
+            extend=extend + ["password"] if extend else ["password"],
+            extra_fields=extra_fields,
         )
 
 
@@ -683,6 +734,7 @@ class UserReview(Base, BaseMixin):
 class Chat(Base, BaseMixin):
     __tablename__ = "chat"
     __table_args__ = (
+        CheckConstraint("user1_id <> user2_id"),
         UniqueConstraint(
             "user1_id",
             "user2_id",
@@ -726,7 +778,6 @@ class Chat(Base, BaseMixin):
 class ChatMessage(Base, BaseMixin):
     __tablename__ = "chat_message"
     __table_args__ = (
-        CheckConstraint("user1_id != user2_id"),
         ForeignKeyConstraint(
             ("user_id",),
             ("user.id",),
@@ -747,6 +798,7 @@ class ChatMessage(Base, BaseMixin):
 
     user_id: int = Column(Integer, nullable=False)
     chat_id: int = Column(Integer, nullable=False)
+    read: bool = Column(Boolean, nullable=False, default=False)
 
     user: User = relationship("User", back_populates="messages", uselist=False)
     chat: Chat = relationship("Chat", back_populates="messages", uselist=False)
@@ -899,4 +951,69 @@ class HousingFeature(Base, BaseMixin):
             f"id={self.id}, "
             f"housing='{self.housing}', "
             f"feature='{self.feature}')>"
+        )
+
+
+class HousingImage(Base, BaseMixin):
+    __tablename__ = "housing_image"
+    __table_args__ = (
+        UniqueConstraint("housing_id", "is_main"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
+
+    housing_id: int = Column(Integer, nullable=False)
+    file_name: Optional[str] = Column(String, nullable=True)
+    is_main: Optional[bool] = Column(Boolean, nullable=True)
+
+    housing: Housing = relationship(
+        "Housing", back_populates="housing_images", uselist=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+        )
+
+
+class LikedHousing(Base, BaseMixin):
+    __tablename__ = "liked_housing"
+    __table_args__ = (
+        UniqueConstraint("housing_id", "user_id"),
+        ForeignKeyConstraint(
+            ("housing_id",),
+            ("housing.id",),
+            name="fk_on_housing",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ("user_id",),
+            ("user.id",),
+            name="fk_on_user",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
+    user_id: int = Column(Integer, nullable=False)
+    housing_id: int = Column(Integer, nullable=False)
+
+    housing: Housing = relationship(
+        "Housing", back_populates="housing_likes", uselist=False
+    )
+    user: "User" = relationship("User", back_populates="liked_housings", uselist=False)
+
+    def __repr__(self) -> str:
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"housing='{self.housing}', "
+            f"user='{self.housing}', "
         )

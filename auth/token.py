@@ -8,7 +8,7 @@ from jose import jwt, JWTError
 from starlette import status
 
 from core.models import User
-from core.views import Session
+from app.settings import Session, get_db
 from auth.database import get_user_by_email
 from auth.hashed import verify_password
 from auth.scheme import TokenData
@@ -42,15 +42,16 @@ def verify_token(
         return credentials_exception
 
 
-async def get_current_user(data: str = Depends(oauth2_scheme)) -> User:
+async def get_current_user(
+    data: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     token_data = verify_token(data, credentials_exception)
-    if token_data == "credentials_exception":
+    if not isinstance(token_data, TokenData):
         raise credentials_exception
-    db = Session()
 
     return get_user_by_email(db, token_data.email)
