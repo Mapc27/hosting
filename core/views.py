@@ -1,9 +1,10 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, UploadFile, Form, File, HTTPException
+from sqlalchemy.orm import Session
 from starlette import status
 
-from app.settings import Session, get_db
+from app.settings import get_db
 from auth.token import get_current_user
 from core.models import (
     User,
@@ -37,6 +38,8 @@ from core.services import (
     set_main_housing_image_,
     get_pagination_data,
     get_housing_,
+    create_housings_attrs_,
+    get_housing_fields_,
 )
 
 router = APIRouter(prefix="", tags=["core"])
@@ -62,7 +65,6 @@ async def create_chat(
     user1: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-
     if user1.id == chat_scheme.user_id:
         return {"detail": "user_id is id of current user"}
 
@@ -201,3 +203,14 @@ def create_house(
 @router.get("/housing/{housing_id}")
 def get_housing(housing_id: int, db: Session = Depends(get_db)) -> dict:
     return get_housing_(housing_id, db)
+
+
+@router.post("/housing/attrs")
+def create_housings_attrs(db: Session = Depends(get_db)) -> dict:
+    create_housings_attrs_(db)
+    return {"success": True}
+
+
+@router.get("/housing/fields/")
+def get_housing_fields(db: Session = Depends(get_db)) -> dict:
+    return get_housing_fields_(db)

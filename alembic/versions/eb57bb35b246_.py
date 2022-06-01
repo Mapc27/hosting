@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 3be945230553
+Revision ID: eb57bb35b246
 Revises:
-Create Date: 2022-05-30 13:39:09.578088
+Create Date: 2022-06-01 15:43:54.079400
 
 """
 import sqlalchemy_utils
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "3be945230553"
+revision = "eb57bb35b246"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -66,7 +66,7 @@ def upgrade():
         ),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("description", sa.String(length=100), nullable=False),
-        sa.Column("level", sa.Integer(), nullable=False),
+        sa.Column("level", sa.Integer(), nullable=False, default=0),
         sa.Column("parent_id", sa.Integer(), nullable=True),
         sa.CheckConstraint("level >= 0 and level <= 2"),
         sa.ForeignKeyConstraint(
