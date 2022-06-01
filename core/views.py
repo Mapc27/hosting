@@ -1,9 +1,10 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, UploadFile, Form, File, HTTPException
+from sqlalchemy.orm import Session
 from starlette import status
 
-from app.settings import Session, get_db
+from app.settings import get_db
 from auth.token import get_current_user
 from core.models import (
     User,
@@ -11,6 +12,7 @@ from core.models import (
     HousingType,
     ComfortCategory,
     Comfort,
+    CharacteristicType,
 )
 from core.schemas import (
     ChatCreate,
@@ -201,3 +203,36 @@ def create_house(
 @router.get("/housing/{housing_id}")
 def get_housing(housing_id: int, db: Session = Depends(get_db)) -> dict:
     return get_housing_(housing_id, db)
+
+
+@router.post("/create_housings_attrs")
+def create_housings_attrs(db: Session = Depends(get_db)) -> dict:
+    for model in (HousingType, HousingCategory, CharacteristicType):
+        db.query(model).delete()
+    db.commit()
+
+    for name, description in {
+        "Entire place": "A place all to yourself",
+        "Shared room": "A sleeping space and common areas that may be shared with others",
+        "Private room": "Your own room in a home or a hotel, plus some shared common spaces",
+    }.items():
+        housing_type = HousingType(name=name, description=description)
+        db.add(housing_type)
+
+    for name in (
+        "Apartment",
+        "House",
+        "Secondary unit",
+        "Unique space",
+        "Bed and breakfast",
+        "Boutique hotel",
+    ):
+        housing_category = HousingCategory(name=name)
+        db.add(housing_category)
+
+    for name in ("guests", "bedrooms", "beds", "baths"):
+        characteristic_type = CharacteristicType(name=name)
+        db.add(characteristic_type)
+    db.commit()
+
+    return {"success": True}
