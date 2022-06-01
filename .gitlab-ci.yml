@@ -16,7 +16,6 @@ stages:
 #  tags:
 #    - linux
 
-
 build:
   stage: build
   script:
