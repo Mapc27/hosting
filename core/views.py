@@ -160,7 +160,7 @@ def create_house(
     housing_pricing_scheme: HousingPricingCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> None:
+) -> int:
     category: HousingCategory = (
         db.query(HousingCategory)
         .filter(HousingCategory.name == category_scheme.name)
@@ -194,6 +194,8 @@ def create_house(
     create_housing_comfort(comfort, housing, db)
 
     create_housing_pricing(housing_pricing_scheme, housing, db)
+
+    return housing.id
 
 
 @router.get("/housing/{housing_id}")
