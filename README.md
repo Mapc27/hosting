@@ -21,6 +21,10 @@
 Install all dependencies
 
 ```bash
+poetry shell
+```
+
+```bash
 poetry install
 ```
 
@@ -31,7 +35,7 @@ Copy all environments variables
 
 
 ```bash
-copy example.env
+copy example.env .env
 ```
 
 Synchronize the database state with the current set of models and migrations.
@@ -49,7 +53,14 @@ pre-commit install
 Run the server
 
 ```bash
-uvicorn web:app
+uvicorn main:app
+```
+
+
+Or
+
+```bash
+docker-compose up
 ```
 
 ## Design layout
