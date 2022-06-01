@@ -1,39 +1,60 @@
-image: atnartur/docker:latest
-
-stages:
-#  - lint
-  - build
-  - deploy
-
-#lint:
-#  stage: lint
-#  image: python:3.8
-#  before_script: []
+#image: atnartur/docker:latest
+#
+#stages:
+##  - lint
+#  - build
+#  - deploy
+#
+##lint:
+##  stage: lint
+##  image: python:3.8
+##  before_script: []
+##  script:
+##    - pip install -r lint_requirements.txt
+##    - pre-commit install
+##    - pre-commit run --all-files
+##  tags:
+##    - linux
+#
+#build:
+#  stage: build
 #  script:
-#    - pip install -r lint_requirements.txt
-#    - pre-commit install
-#    - pre-commit run --all-files
+#    - sudo docker-compose -f docker-compose.yaml build db
+#    - sudo docker-compose -f docker-compose.yaml build app
+#    - sudo docker-compose -f docker-compose.yaml build nginx
 #  tags:
 #    - linux
+#
+#
+#deploy:
+#  stage: deploy
+#  script:
+#    - sudo docker-compose -f docker-compose.yaml stop
+#    - sudo docker-compose -f docker-compose.yaml rm -f
+#    - sudo docker-compose -f docker-compose.yaml up -d
+#  tags:
+#    - linux
+#  only:
+#    - main
+
+image: docker:latest
+
+#variables:
+#  DOCKER_DRIVER: overlay
+
+services:
+- docker:dind
+
+before_script:
+- docker info
+- apk update
+- apk upgrade
+- apk add python python-dev py-pip build-base
+- pip install docker-compose
 
 build:
   stage: build
   script:
-    - sudo docker-compose -f docker-compose.yaml build db
-    - sudo docker-compose -f docker-compose.yaml build app
-    - sudo docker-compose -f docker-compose.yaml build nginx
+  - docker-compose -f docker-compose.yaml build
   tags:
     - linux
-
-
-
-deploy:
-  stage: deploy
-  script:
-    - sudo docker-compose -f docker-compose.yaml stop
-    - sudo docker-compose -f docker-compose.yaml rm -f
-    - sudo docker-compose -f docker-compose.yaml up -d
-  tags:
-    - linux
-  only:
-    - main
