@@ -19,7 +19,7 @@ from auth.services import (
     create_user_image_,
 )
 from auth.token import create_access_token, get_current_user
-from core.models import User
+from core.models import User, LikedHousing
 
 router = APIRouter(prefix="/user", tags=["authentication"])
 
@@ -89,13 +89,14 @@ async def create_wishlist(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    liked_housing = create_wishlist_(user, wishlist.housing_id, db)
+    liked_housing: Union[LikedHousing, None] = create_wishlist_(
+        user, wishlist.housing_id, db
+    )
     if not liked_housing:
-        return {"detail": "Like already exists"}
-    return {
-        "user_id": user.id,
-        "wish": get_wish_(user, db, housing_id=wishlist.housing_id),
-    }
+        return {
+            "detail": f"Like already exists or Housing with id = {wishlist.housing_id} doesn't exists"
+        }
+    return liked_housing.as_dict()
 
 
 @router.delete("/wishlist")
