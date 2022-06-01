@@ -1,11 +1,13 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from auth import auth, scheme
-from auth.token import get_current_user
+from auth.token import get_current_user, SECRET_KEY
 from chat import views as chat_views
 
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
 app.include_router(auth.router)

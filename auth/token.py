@@ -54,12 +54,3 @@ async def get_current_user(data: str = Depends(oauth2_scheme)) -> User:
     db = Session()
 
     return get_user_by_email(db, token_data.email)
-
-
-def authenticate_user(db, email: str, password: str) -> Union[User, bool]:
-    user = get_user_by_email(db, email)
-    if not user:
-        return False
-    if not verify_password(password, user.password):
-        return False
-    return user
