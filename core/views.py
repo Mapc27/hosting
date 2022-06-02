@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union
 
 from fastapi import APIRouter, Depends, UploadFile, Form, File, HTTPException
 from starlette import status
@@ -20,6 +20,7 @@ from core.schemas import (
     ComfortCategoryCreate,
     ComfortCreate,
     HousingPricingCreate,
+    HouseChange,
 )
 from core.services import (
     create_chat_,
@@ -36,6 +37,7 @@ from core.services import (
     get_housing_,
     create_characteristics,
     delete_housing_,
+    change_data_housing,
 )
 
 router = APIRouter(prefix="", tags=["core"])
@@ -171,6 +173,21 @@ def delete_housing(
 ) -> dict:
     check_permissions_on_housing(user, housing_id, db)
     housing = delete_housing_(housing_id, db)
+
+    return housing.as_dict()
+
+
+@router.put("/housing/{housing_id}")
+def change_housing(
+    house_scheme: HouseChange,
+    housing_id: int,
+    category_id: Union[int, None] = None,
+    type_id: Union[int, None] = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    check_permissions_on_housing(user, housing_id, db)
+    housing = change_data_housing(house_scheme, housing_id, category_id, type_id, db)
 
     return housing.as_dict()
 

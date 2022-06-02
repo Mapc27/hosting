@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from pydantic import BaseModel
 
@@ -28,6 +28,13 @@ class HouseCreate(BaseModel):
     address: str
     description: str
     characteristics: List[Characteristic]
+
+
+class HouseChange(BaseModel):
+    name: Union[str, None] = None
+    address: Union[str, None] = None
+    description: Union[str, None] = None
+    characteristics: Union[List[Characteristic], None] = None
 
 
 class ComfortCategoryCreate(BaseModel):

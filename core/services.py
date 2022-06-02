@@ -30,6 +30,7 @@ from core.schemas import (
     ComfortCategoryCreate,
     ComfortCreate,
     HousingPricingCreate,
+    HouseChange,
 )
 
 
@@ -222,6 +223,56 @@ def create_characteristics(
 def delete_housing_(housing_id: int, db: Session) -> Housing:
     housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
     db.delete(housing)
+    db.commit()
+    return housing
+
+
+def change_characteristics(
+    characteristics_list: list, housing_id: int, db: Session
+) -> None:
+    for characteristic_dict in characteristics_list:
+        characteristic: Characteristic = (
+            db.query(Characteristic)
+            .filter(
+                Characteristic.characteristic_type_id
+                == characteristic_dict.characteristic_id
+            )
+            .first()
+        )
+        if characteristic:
+            characteristic.amount = characteristic_dict.amount
+        else:
+            characteristic_new: Characteristic = Characteristic(
+                amount=characteristic_dict.amount,
+                housing_id=housing_id,
+                characteristic_type_id=characteristic_dict.characteristic_id,
+            )
+            db.add(characteristic_new)
+        db.commit()
+        db.refresh(characteristic)
+
+
+def change_data_housing(
+    house_scheme: HouseChange,
+    housing_id: int,
+    category_id: Union[int, None],
+    type_id: Union[int, None],
+    db: Session,
+) -> Housing:
+    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    if house_scheme.name:
+        housing.name = house_scheme.name
+    if house_scheme.address:
+        housing.address = house_scheme.address
+    if house_scheme.description:
+        housing.description = house_scheme.description
+    if house_scheme.characteristics:
+        change_characteristics(house_scheme.characteristics, housing_id, db)
+    if category_id:
+        housing.category_id = category_id
+    if type_id:
+        housing.type_id = type_id
+
     db.commit()
     return housing
 
