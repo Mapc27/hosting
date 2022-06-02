@@ -5,6 +5,10 @@ class ChatCreate(BaseModel):
     user_id: int
 
 
+class ChatDelete(BaseModel):
+    chat_id: int
+
+
 class CategoryCreate(BaseModel):
     name: str
     description: str
