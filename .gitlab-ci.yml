@@ -35,13 +35,13 @@ test:
     - linux
 
 
-deploy:
-  stage: deploy
-  script:
-    - docker-compose -f docker-compose.yaml stop
-    - docker-compose -f docker-compose.yaml rm -f
-    - docker-compose -f docker-compose.yaml up -d
-  tags:
-    - linux
-  only:
-    - main
+#deploy:
+#  stage: deploy
+#  script:
+#    - docker-compose -f docker-compose.yaml stop
+#    - docker-compose -f docker-compose.yaml rm -f
+#    - docker-compose -f docker-compose.yaml up -d
+#  tags:
+#    - linux
+#  only:
+#    - main
