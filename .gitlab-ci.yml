@@ -19,18 +19,18 @@ lint:
 build:
   stage: build
   script:
-    - sudo docker-compose -f docker-compose.yaml build db
-    - sudo docker-compose -f docker-compose.yaml build app
-    - sudo docker-compose -f docker-compose.yaml build nginx
+    - docker-compose -f docker-compose.yaml build db
+    - docker-compose -f docker-compose.yaml build app
+    - docker-compose -f docker-compose.yaml build nginx
   tags:
     - linux
 
 deploy:
   stage: deploy
   script:
-    - sudo docker-compose -f docker-compose.yaml stop
-    - sudo docker-compose -f docker-compose.yaml rm -f
-    - sudo docker-compose -f docker-compose.yaml up -d
+    - docker-compose -f docker-compose.yaml stop
+    - docker-compose -f docker-compose.yaml rm -f
+    - docker-compose -f docker-compose.yaml up -d
   tags:
     - linux
   only:
