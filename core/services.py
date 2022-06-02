@@ -219,6 +219,13 @@ def create_characteristics(
         db.refresh(characteristic)
 
 
+def delete_housing_(housing_id: int, db: Session) -> Housing:
+    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    db.delete(housing)
+    db.commit()
+    return housing
+
+
 def create_comfort(
     comfort_scheme: ComfortCreate, category: ComfortCategory, db: Session
 ) -> Comfort:

@@ -35,6 +35,7 @@ from core.services import (
     get_pagination_data,
     get_housing_,
     create_characteristics,
+    delete_housing_,
 )
 
 router = APIRouter(prefix="", tags=["core"])
@@ -160,6 +161,18 @@ def create_house(
     create_characteristics(house_scheme, housing, db)
 
     return housing.id
+
+
+@router.delete("/housing")
+def delete_housing(
+    housing_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    check_permissions_on_housing(user, housing_id, db)
+    housing = delete_housing_(housing_id, db)
+
+    return housing.as_dict()
 
 
 @router.get("/housing/{housing_id}")
