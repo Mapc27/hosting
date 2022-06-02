@@ -15,9 +15,15 @@ app.include_router(auth_router)
 app.include_router(core_router)
 app.include_router(chat_router)
 
+origins = [
+    "*",
+    "http://localhost:3000",
+    "https://accounts.google.com/.well-known/openid-configuration",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

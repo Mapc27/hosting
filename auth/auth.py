@@ -46,7 +46,7 @@ oauth.register(
 @router.get("/oauth_login")
 async def login_oauth(request: Request) -> Any:
     # redirect_uri = router.url_path_for("/oauth_token")
-    redirect_uri = "http://127.0.0.1:8000/oauth_token"
+    redirect_uri = "http://127.0.0.1:8000/user/oauth_token"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
