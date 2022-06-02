@@ -1,36 +1,36 @@
 image: atnartur/docker:latest
 
 stages:
-  - lint
-  - build
+#  - lint
+#  - build
   - test
-  - deploy
-
-lint:
-  stage: lint
-  image: python:3.8
-  before_script: []
-  script:
-    - pip install -r lint_requirements.txt
-    - pre-commit install
-    - pre-commit run --all-files
-  tags:
-    - linux
-
-build:
-  stage: build
-  script:
-    - docker-compose -f docker-compose.yaml build db
-    - docker-compose -f docker-compose.yaml build app
-    - docker-compose -f docker-compose.yaml build nginx
-  tags:
-    - linux
+#  - deploy
+#
+#lint:
+#  stage: lint
+#  image: python:3.8
+#  before_script: []
+#  script:
+#    - pip install -r lint_requirements.txt
+#    - pre-commit install
+#    - pre-commit run --all-files
+#  tags:
+#    - linux
+#
+#build:
+#  stage: build
+#  script:
+#    - docker-compose -f docker-compose.yaml build db
+#    - docker-compose -f docker-compose.yaml build app
+#    - docker-compose -f docker-compose.yaml build nginx
+#  tags:
+#    - linux
 
 test:
   stage: test
   script:
     - docker-compose -f docker-compose.yaml up -d
-    - docker exec -ti app pytest
+    - docker exec app pytest
   tags:
     - linux
 
