@@ -148,11 +148,11 @@ async def set_main_housing_image(
     )
 
 
-@router.post("/housing/{category_id}/{type_id}")
+@router.post("/housing")
 def create_house(
+    house_scheme: HouseCreate,
     category_id: int,
     type_id: int,
-    house_scheme: HouseCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> int:
