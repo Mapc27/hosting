@@ -3,6 +3,7 @@ image: atnartur/docker:latest
 stages:
   - lint
   - build
+  - test
   - deploy
 
 lint:
@@ -24,6 +25,15 @@ build:
     - docker-compose -f docker-compose.yaml build nginx
   tags:
     - linux
+
+test:
+  stage: test
+  script:
+    - docker-compose -f docker-compose.yaml up -d
+    - pytest
+  tags:
+    - linux
+
 
 deploy:
   stage: deploy
