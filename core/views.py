@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, UploadFile, Form, File, HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -12,6 +13,7 @@ from core.models import (
     HousingType,
     ComfortCategory,
     Comfort,
+    Chat,
 )
 from core.schemas import (
     ChatCreate,
@@ -21,6 +23,7 @@ from core.schemas import (
     ComfortCategoryCreate,
     ComfortCreate,
     HousingPricingCreate,
+    ChatDelete,
 )
 from core.services import (
     create_chat_,
@@ -78,6 +81,30 @@ async def create_chat(
         return {"detail": "Chat already exists"}
 
     return get_chat_short_(user1.id, chat.id, db)
+
+
+@router.delete("/chats")
+async def delete_chat(
+    chat_scheme: ChatDelete,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    chat = (
+        db.query(Chat)
+        .filter(
+            Chat.id == chat_scheme.chat_id,
+            or_(Chat.user1_id == user.id, Chat.user2_id == user.id),
+        )
+        .first()
+    )
+
+    if not chat:
+        return {"detail": "Chat doesn't exists"}
+
+    db.delete(chat)
+    db.commit()
+
+    return {"detail": "Success"}
 
 
 @router.get("/chats/short/{chat_id}")
@@ -208,7 +235,7 @@ def get_housing(housing_id: int, db: Session = Depends(get_db)) -> dict:
 @router.post("/housing/attrs")
 def create_housings_attrs(db: Session = Depends(get_db)) -> dict:
     create_housings_attrs_(db)
-    return {"success": True}
+    return {"detail": "Success"}
 
 
 @router.get("/housing/fields/")
