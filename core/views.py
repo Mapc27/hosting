@@ -189,7 +189,10 @@ def change_housing(
     check_permissions_on_housing(user, housing_id, db)
     housing = change_data_housing(house_scheme, housing_id, category_id, type_id, db)
 
-    return housing.as_dict()
+    if housing:
+        return housing.as_dict()
+    else:
+        return {"detail": "Housing doesn't exist"}
 
 
 @router.get("/housing/{housing_id}")

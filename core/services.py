@@ -258,8 +258,10 @@ def change_data_housing(
     category_id: Union[int, None],
     type_id: Union[int, None],
     db: Session,
-) -> Housing:
+) -> Union[Housing, None]:
     housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    if not housing:
+        return None
     if house_scheme.name:
         housing.name = house_scheme.name
     if house_scheme.address:
