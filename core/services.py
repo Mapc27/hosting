@@ -210,9 +210,9 @@ def create_characteristics(
 ) -> None:
     for characteristic_dict in house_scheme.characteristics:
         characteristic: Characteristic = Characteristic(
-            amount=characteristic_dict["amount"],
+            amount=characteristic_dict.amount,
             housing_id=housing.id,
-            characteristic_type_id=characteristic_dict["characteristic_id"],
+            characteristic_type_id=characteristic_dict.characteristic_id,
         )
         db.add(characteristic)
         db.commit()

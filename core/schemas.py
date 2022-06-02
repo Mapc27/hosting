@@ -19,7 +19,7 @@ class HousingTypeCreate(BaseModel):
 
 
 class Characteristic(BaseModel):
-    characteristic: int
+    characteristic_id: int
     amount: int
 
 
