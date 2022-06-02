@@ -2,6 +2,7 @@ from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -62,6 +63,18 @@ async def create(
 async def logout(user: User = Depends(get_current_user)) -> scheme.TokenData:
     token_data = scheme.TokenData(email=user.email, expires=0)
     return token_data
+
+
+@router.delete("")
+async def delete(
+    user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
+    db.delete(user)
+    try:
+        db.commit()
+    except IntegrityError:
+        return {"detail": "Failed"}
+    return {"detail": "Success"}
 
 
 @router.get("/wish")
