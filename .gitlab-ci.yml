@@ -30,7 +30,7 @@ test:
   stage: test
   script:
     - docker-compose -f docker-compose.yaml up -d
-    - pytest
+    - docker exec -ti app pytest
   tags:
     - linux
 
