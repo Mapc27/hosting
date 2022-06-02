@@ -21,6 +21,7 @@ from core.models import (
     Characteristic,
     Rule,
     HousingRule,
+    CharacteristicType,
 )
 from core.schemas import (
     HouseCreate,
@@ -183,31 +184,11 @@ def set_main_housing_image_(
     return replace_main_housing_image(housing_image, housing_id, db)
 
 
-def create_category(category_scheme: CategoryCreate, db: Session) -> HousingCategory:
-    category: HousingCategory = HousingCategory(
-        name=category_scheme.name,
-        description=category_scheme.description,
-        level=category_scheme.level,
-    )
-    db.add(category)
-    db.commit()
-    return category
-
-
-def create_housing_type(type_scheme: HousingTypeCreate, db: Session) -> HousingType:
-    housing_type: HousingType = HousingType(
-        name=type_scheme.name, description=type_scheme.description
-    )
-    db.add(housing_type)
-    db.commit()
-    return housing_type
-
-
 def create_housing(
     house_scheme: HouseCreate,
     user: User,
-    category: HousingCategory,
-    housing_type: HousingType,
+    category_id: int,
+    type_id: int,
     db: Session,
 ) -> Housing:
     housing: Housing = Housing(
@@ -215,21 +196,27 @@ def create_housing(
         address=house_scheme.address,
         user_id=user.id,
         description=house_scheme.description,
-        category_id=category.id,
-        type_id=housing_type.id,
+        category_id=category_id,
+        type_id=type_id,
     )
     db.add(housing)
     db.commit()
+    db.refresh(housing)
     return housing
 
 
-def create_comfort_category(
-    comfort_category_scheme: ComfortCategoryCreate, db: Session
-) -> ComfortCategory:
-    category: ComfortCategory = ComfortCategory(name=comfort_category_scheme.name)
-    db.add(category)
-    db.commit()
-    return category
+def create_characteristics(
+    house_scheme: HouseCreate, housing: Housing, db: Session
+) -> None:
+    for characteristic_dict in house_scheme.characteristics:
+        characteristic: Characteristic = Characteristic(
+            amount=characteristic_dict["amount"],
+            housing_id=housing.id,
+            characteristic_type_id=characteristic_dict["characteristic_id"],
+        )
+        db.add(characteristic)
+        db.commit()
+        db.refresh(characteristic)
 
 
 def create_comfort(

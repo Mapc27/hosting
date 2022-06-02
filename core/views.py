@@ -23,10 +23,7 @@ from core.schemas import (
 )
 from core.services import (
     create_chat_,
-    create_category,
-    create_housing_type,
     create_housing,
-    create_comfort_category,
     create_comfort,
     create_housing_comfort,
     create_housing_pricing,
@@ -37,6 +34,7 @@ from core.services import (
     set_main_housing_image_,
     get_pagination_data,
     get_housing_,
+    create_characteristics,
 )
 
 router = APIRouter(prefix="", tags=["core"])
@@ -150,50 +148,16 @@ async def set_main_housing_image(
     )
 
 
-@router.post("/housing")
+@router.post("/housing/{category_id}/{type_id}")
 def create_house(
-    category_scheme: CategoryCreate,
+    category_id: int,
+    type_id: int,
     house_scheme: HouseCreate,
-    type_scheme: HousingTypeCreate,
-    comfort_category_scheme: ComfortCategoryCreate,
-    comfort_scheme: ComfortCreate,
-    housing_pricing_scheme: HousingPricingCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> int:
-    category: HousingCategory = (
-        db.query(HousingCategory)
-        .filter(HousingCategory.name == category_scheme.name)
-        .first()
-    )
-    if not category:
-        category = create_category(category_scheme, db)
-
-    housing_type: HousingType = (
-        db.query(HousingType).filter(HousingType.name == type_scheme.name).first()
-    )
-    if not housing_type:
-        housing_type = create_housing_type(type_scheme, db)
-
-    housing = create_housing(house_scheme, user, category, housing_type, db)
-
-    comfort_category: ComfortCategory = (
-        db.query(ComfortCategory)
-        .filter(ComfortCategory.name == comfort_category_scheme.name)
-        .first()
-    )
-    if not comfort_category:
-        comfort_category = create_comfort_category(comfort_category_scheme, db)
-
-    comfort: Comfort = (
-        db.query(Comfort).filter(Comfort.name == comfort_category_scheme.name).first()
-    )
-    if not comfort:
-        comfort = create_comfort(comfort_scheme, comfort_category, db)
-
-    create_housing_comfort(comfort, housing, db)
-
-    create_housing_pricing(housing_pricing_scheme, housing, db)
+    housing = create_housing(house_scheme, user, category_id, type_id, db)
+    create_characteristics(house_scheme, housing, db)
 
     return housing.id
 
