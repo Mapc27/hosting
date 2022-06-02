@@ -23,6 +23,9 @@ mypy = "^0.942"
 sqlalchemy-stubs = "^0.4"
 websockets = "^10.3"
 requests = "^2.27.1"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+types-requests = "^2.27.30"
 
 [tool.poetry.dev-dependencies]
 
