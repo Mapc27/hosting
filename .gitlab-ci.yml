@@ -6,6 +6,7 @@ stages:
   - test
   - deploy
 
+
 lint:
   stage: lint
   image: python:3.8
@@ -17,6 +18,7 @@ lint:
   tags:
     - linux
 
+
 build:
   stage: build
   script:
@@ -26,6 +28,7 @@ build:
   tags:
     - linux
 
+
 test:
   stage: test
   script:
@@ -33,6 +36,7 @@ test:
     - docker exec app pytest
   tags:
     - linux
+
 
 deploy:
   stage: deploy
