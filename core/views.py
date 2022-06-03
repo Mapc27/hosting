@@ -163,7 +163,7 @@ def create_house(
     return housing.id
 
 
-@router.delete("/housing")
+@router.delete("/housing/{housing_id}")
 def delete_housing(
     housing_id: int,
     user: User = Depends(get_current_user),
