@@ -34,7 +34,6 @@ test:
   tags:
     - linux
 
-
 deploy:
   stage: deploy
   script:
