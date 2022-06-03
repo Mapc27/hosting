@@ -33,8 +33,29 @@ from core.schemas import (
 
 
 def get_pagination_data(db: Session, page: int = 0, limit: int = 10) -> Any:
-    data = db.query(Housing).offset(page).limit(limit).all()
-    return data
+    data = (
+        db.query(Housing, HousingImage, HousingCategory, HousingType)
+        .filter(
+            Housing.id == HousingImage.housing_id,
+            HousingCategory.id == Housing.category_id,
+            HousingType.id == Housing.type_id,
+            HousingImage.is_main == True,
+        )
+        .offset(page)
+        .limit(limit)
+        .all()
+    )
+    new_list = []
+    for query in data:
+        housing = query.Housing.as_dict(
+            extra_fields=["characteristics", "category", "pricing", "type"]
+        )
+        housing["main_image"] = query.HousingImage.as_dict()
+        # housing['category'] = query.HousingCategory.as_dict()
+        # housing['type'] = query.HousingType.as_dict()
+        new_list.append(housing)
+
+    return new_list
 
 
 def get_chat_short_(user_id: int, chat_id: int, db: Session) -> Any:
