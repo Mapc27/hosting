@@ -9,7 +9,7 @@ load_dotenv()
 
 DATABASE_HOST = os.environ.get("DATABASE_HOST", "db")
 DATABASE_NAME = os.environ.get("DATABASE_NAME", "postgres")
-DATABASE_PORT = os.environ.get("DATABASE_PORT", "postgres")
+DATABASE_PORT = os.environ.get("DATABASE_PORT", "5432")
 DATABASE_USER = os.environ.get("DATABASE_USER", "postgres")
 DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD", "postgres")
 

@@ -354,3 +354,45 @@ def get_housing_(housing_id: int, db: Session) -> dict:
     housing_dict["rules"] = rules
     housing_dict["comforts"] = comforts
     return housing_dict
+
+
+def create_housings_attrs_(db: Session) -> None:
+    for model in (HousingType, HousingCategory, CharacteristicType):
+        db.query(model).delete()
+    db.commit()
+
+    for name, description in {
+        "Entire place": "A place all to yourself",
+        "Shared room": "A sleeping space and common areas that may be shared with others",
+        "Private room": "Your own room in a home or a hotel, plus some shared common spaces",
+    }.items():
+        housing_type = HousingType(name=name, description=description)
+        db.add(housing_type)
+
+    for name in (
+        "Apartment",
+        "House",
+        "Secondary unit",
+        "Unique space",
+        "Bed and breakfast",
+        "Boutique hotel",
+    ):
+        housing_category = HousingCategory(name=name)
+        db.add(housing_category)
+
+    for name in ("guests", "bedrooms", "beds", "baths"):
+        characteristic_type = CharacteristicType(name=name)
+        db.add(characteristic_type)
+    db.commit()
+
+
+def get_housing_fields_(db: Session) -> dict:
+    return {
+        "housing_types": [obj.as_dict() for obj in db.query(HousingType).all()],
+        "characteristic_types": [
+            obj.as_dict() for obj in db.query(CharacteristicType).all()
+        ],
+        "housing_categories": [
+            obj.as_dict() for obj in db.query(HousingCategory).all()
+        ],
+    }

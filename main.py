@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 
 from auth.auth import router as auth_router
 from core.views import router as core_router
@@ -24,3 +25,6 @@ app.add_middleware(
 @app.get("/")
 def index() -> dict:
     return {"Hello": "World"}
+
+
+app.mount("/media", StaticFiles(directory="media"), name="media")
