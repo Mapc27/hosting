@@ -1,14 +1,22 @@
 from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+import os
+from typing import Any
+
+from fastapi import Request
+from starlette.responses import RedirectResponse, JSONResponse
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from starlette import status
+from typing import Union
+from starlette.config import Config
 
 from app.settings import get_db
 from auth import scheme
-from auth.database import get_user_by_email, create_user, change_user_data
 from auth.hashed import verify_password
 from auth.scheme import Wishlist, CreateWishlist, DeleteWishlist, ChangeProfile
 from auth.services import (
@@ -19,10 +27,54 @@ from auth.services import (
     delete_user_image_,
     create_user_image_,
 )
+from auth.database import get_user_by_email, create_user, change_user_data
 from auth.token import create_access_token, get_current_user
 from core.models import User, LikedHousing
 
 router = APIRouter(prefix="/user", tags=["authentication"])
+
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID") or None
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET") or None
+
+config_data = {
+    "GOOGLE_CLIENT_ID": GOOGLE_CLIENT_ID,
+    "GOOGLE_CLIENT_SECRET": GOOGLE_CLIENT_SECRET,
+}
+starlette_config = Config(environ=config_data)
+oauth = OAuth(starlette_config)
+oauth.register(
+    name="google",
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"},
+)
+
+
+@router.get("/oauth_login")
+async def login_oauth(request: Request) -> Any:
+    redirect_uri = request.url_for("auth")
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@router.get("/oauth_token")
+async def auth(request: Request, db: Session = Depends(get_db)) -> dict:
+    try:
+        access_token = await oauth.google.authorize_access_token(request)
+    except OAuthError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    user_data = access_token["userinfo"]
+    user = get_user_by_email(db, user_data["email"])
+    if user:
+        jwt = create_access_token(data={"sub": user_data["email"]})
+        return {"access_token": jwt, "token_type": "bearer"}
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 @router.post("/login")

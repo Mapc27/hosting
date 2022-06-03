@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from typing import Union
 
@@ -9,10 +10,11 @@ from starlette import status
 from core.models import User
 from app.settings import Session, get_db
 from auth.database import get_user_by_email
+from auth.hashed import verify_password
 from auth.scheme import TokenData
 
-SECRET_KEY = "206dl5m94fa26ca2556c81p16gb7a9563b9qfr099f6f0f4c0a6cf13b88e8d3k7"
-ALGORITHM = "HS256"
+SECRET_KEY = os.environ.get("SECRET_KEY")
+ALGORITHM = os.environ.get("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/login")
