@@ -26,6 +26,8 @@ requests = "^2.27.1"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 types-requests = "^2.27.30"
+itsdangerous = "^2.1.2"
+starlette = "0.17.1"
 
 [tool.poetry.dev-dependencies]
 
