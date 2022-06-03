@@ -154,3 +154,19 @@ def test_edit_housing(
         f"/housing/{housing_id}", headers=headers, json={"name": name}
     )
     assert response.json()["name"] == name
+
+
+@housing
+def test_get_housing_(housing_id: int, **kwargs: dict) -> None:
+    headers = kwargs.get("headers")
+    response = client.get(f"/housing/{housing_id}", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["id"] == housing_id
+
+
+def test_offers() -> None:
+    response = client.get("/offers")
+
+    assert response.status_code == 200
+    assert response.json() is not None
