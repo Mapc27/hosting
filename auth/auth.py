@@ -45,13 +45,12 @@ oauth.register(
 
 @router.get("/oauth_login")
 async def login_oauth(request: Request) -> Any:
-    # redirect_uri = router.url_path_for("/oauth_token")
-    redirect_uri = "http://127.0.0.1:8000/user/oauth_token"
+    redirect_uri = request.url_for("auth")
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
 @router.get("/oauth_token")
-async def auth(request: Request) -> JSONResponse:
+async def auth(request: Request, db: Session = Depends(get_db)) -> dict:
     try:
         access_token = await oauth.google.authorize_access_token(request)
     except OAuthError:
@@ -60,9 +59,16 @@ async def auth(request: Request) -> JSONResponse:
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    user_data = await oauth.google.parse_id_token(request, access_token)
-    jwt = create_access_token(data={"sub": user_data["email"]})
-    return JSONResponse({"result": True, "access_token": jwt})
+    user_data = access_token["userinfo"]
+    user = get_user_by_email(db, user_data["email"])
+    if user:
+        jwt = create_access_token(data={"sub": user_data["email"]})
+        return {"access_token": jwt, "token_type": "bearer"}
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 @router.post("/login")
