@@ -236,8 +236,9 @@ def create_characteristics(
 
 
 def delete_housing_(housing_id: int, db: Session) -> Housing:
-    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
-    db.delete(housing)
+    query = db.query(Housing).filter(Housing.id == housing_id)
+    housing: Housing = query.first()
+    query.delete()
     db.commit()
     return housing
 

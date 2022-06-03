@@ -1,9 +1,10 @@
+import random
 from typing import Callable, Dict, Union
 
 from fastapi.testclient import TestClient
 from requests import Response  # type: ignore
 
-from auth.test_auth import auth_and_create_user
+from auth.test_auth import auth_and_create_user, auth
 from main import app
 
 client = TestClient(app)
@@ -104,3 +105,52 @@ def test_housing_fields() -> None:
     response = client.get("/housing/fields/")
     assert response.status_code == 200
     assert response.json() is not None
+
+
+def housing(func: Callable) -> Callable:
+    @auth
+    def wrapper(**kwargs: Dict[str, Union[str, Response, Dict, int]]) -> None:
+        headers = kwargs.get("headers")
+        fields = client.get("/housing/fields/", headers=headers).json()
+
+        request_data = {
+            "name": f"test_{random.randint(10, 1000)}",
+            "address": f"test_{random.randint(10, 1000)}",
+            "description": f"test_{random.randint(10, 1000)}",
+            "type_id": random.choice(fields["housing_types"])["id"],
+            "category_id": random.choice(fields["housing_categories"])["id"],
+            "per_night": random.randint(10, 10000),
+            "characteristics": [],
+        }
+        for characteristic_type in fields["characteristic_types"]:
+            request_data["characteristics"].append(
+                {
+                    "characteristic_id": characteristic_type["id"],
+                    "amount": random.randint(0, 30),
+                }
+            )
+
+        response = client.post("/housing", headers=headers, json=request_data)
+        housing_id = response.json()
+        assert isinstance(response.json(), int)
+
+        func(housing_id, **kwargs)
+
+        response = client.delete(f"/housing/{housing_id}", headers=headers)
+        assert response.status_code == 200
+        assert response.json()["id"] == housing_id
+
+    return wrapper
+
+
+@housing
+def test_edit_housing(
+    housing_id: int, **kwargs: Dict[str, Union[str, Response, Dict, int]]
+) -> None:
+    headers = kwargs.get("headers")
+    name = f"test_{random.randint(10, 1000)}"
+
+    response = client.put(
+        f"/housing/{housing_id}", headers=headers, json={"name": name}
+    )
+    assert response.json()["name"] == name
