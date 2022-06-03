@@ -183,18 +183,16 @@ async def set_main_housing_image(
 @router.post("/housing")
 def create_house(
     house_scheme: HouseCreate,
-    category_id: int,
-    type_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> int:
-    housing = create_housing(house_scheme, user, category_id, type_id, db)
+    housing = create_housing(house_scheme, user, db)
     create_characteristics(house_scheme, housing, db)
 
     return housing.id
 
 
-@router.delete("/housing")
+@router.delete("/housing/{housing_id}")
 def delete_housing(
     housing_id: int,
     user: User = Depends(get_current_user),
@@ -210,13 +208,11 @@ def delete_housing(
 def change_housing(
     house_scheme: HouseChange,
     housing_id: int,
-    category_id: Union[int, None] = None,
-    type_id: Union[int, None] = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
     check_permissions_on_housing(user, housing_id, db)
-    housing = change_data_housing(house_scheme, housing_id, category_id, type_id, db)
+    housing = change_data_housing(house_scheme, housing_id, db)
 
     if housing:
         return housing.as_dict()

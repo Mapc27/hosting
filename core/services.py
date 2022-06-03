@@ -188,8 +188,6 @@ def set_main_housing_image_(
 def create_housing(
     house_scheme: HouseCreate,
     user: User,
-    category_id: int,
-    type_id: int,
     db: Session,
 ) -> Housing:
     housing: Housing = Housing(
@@ -197,8 +195,8 @@ def create_housing(
         address=house_scheme.address,
         user_id=user.id,
         description=house_scheme.description,
-        category_id=category_id,
-        type_id=type_id,
+        category_id=house_scheme.category_id,
+        type_id=house_scheme.type_id,
     )
     db.add(housing)
     db.commit()
@@ -255,8 +253,6 @@ def change_characteristics(
 def change_data_housing(
     house_scheme: HouseChange,
     housing_id: int,
-    category_id: Union[int, None],
-    type_id: Union[int, None],
     db: Session,
 ) -> Union[Housing, None]:
     housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
@@ -270,10 +266,10 @@ def change_data_housing(
         housing.description = house_scheme.description
     if house_scheme.characteristics:
         change_characteristics(house_scheme.characteristics, housing_id, db)
-    if category_id:
-        housing.category_id = category_id
-    if type_id:
-        housing.type_id = type_id
+    if house_scheme.category_id:
+        housing.category_id = house_scheme.category_id
+    if house_scheme.type_id:
+        housing.type_id = house_scheme.type_id
 
     db.commit()
     return housing
