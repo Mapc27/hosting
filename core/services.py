@@ -265,7 +265,8 @@ def change_characteristics(
             )
             db.add(characteristic_new)
         db.commit()
-        db.refresh(characteristic)
+        if characteristic:
+            db.refresh(characteristic)
 
 
 def change_housing_pricing(

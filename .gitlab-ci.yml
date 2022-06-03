@@ -41,6 +41,7 @@ deploy:
     - docker-compose -f docker-compose.yaml stop
     - docker-compose -f docker-compose.yaml rm -f
     - docker-compose -f docker-compose.yaml up -d
+    - echo "Application deployed http://3.71.70.45/docs"
   tags:
     - linux
   only:

@@ -534,7 +534,6 @@ class User(Base, BaseMixin):
     requests: List["HousingRequest"] = relationship(
         "HousingRequest", back_populates="user", uselist=True, collection_class=list
     )
-    # todo
     #: UserReview reviews = relationship('UserReview', back_populates='user')
     #: UserReview reviews_author = relationship('UserReview', back_populates='reviewer')
     history: List["HousingHistory"] = relationship(

@@ -107,7 +107,6 @@ async def get_chat_short(
     )
 
 
-# todo need to test
 @router.post("/housing/image/")
 async def create_housing_image(
     housing_id: int = Form(...),
@@ -127,7 +126,6 @@ async def create_housing_image(
     return housing_image.as_dict()
 
 
-# todo need to test
 @router.delete("/housing/image/")
 async def delete_housing_image(
     housing_id: int = Form(...),
@@ -147,7 +145,6 @@ async def delete_housing_image(
     )
 
 
-# todo need to test
 @router.put("/housing/image/set_main")
 async def set_main_housing_image(
     housing_id: int = Form(...),
@@ -168,7 +165,6 @@ async def set_main_housing_image(
     )
 
 
-# todo need to test
 @router.post("/housing")
 def create_house(
     house_scheme: HouseCreate,
@@ -182,7 +178,6 @@ def create_house(
     return housing.id
 
 
-# todo need to test
 @router.delete("/housing/{housing_id}")
 def delete_housing(
     housing_id: int,
@@ -195,7 +190,6 @@ def delete_housing(
     return housing.as_dict()
 
 
-# todo need to test
 @router.put("/housing/{housing_id}")
 def change_housing(
     house_scheme: HouseChange,
