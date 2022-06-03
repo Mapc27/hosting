@@ -106,8 +106,8 @@ class Housing(Base, BaseMixin):
     status: Optional[bool] = Column(Boolean, nullable=False, default=False)
 
     # must be required
-    category_id: Optional[int] = Column(Integer)
-    type_id: Optional[int] = Column(Integer)
+    category_id: int = Column(Integer, nullable=False)
+    type_id: int = Column(Integer, nullable=False)
     user_id: int = Column(Integer, nullable=False)
 
     calendar: "HousingCalendar" = relationship(
@@ -164,6 +164,11 @@ class Housing(Base, BaseMixin):
 
 class CharacteristicType(Base, BaseMixin):
     __tablename__ = "characteristic_type"
+    __table_args__ = (
+        UniqueConstraint(
+            "name",
+        ),
+    )
 
     name: str = Column(String(50), nullable=False)
 
@@ -233,6 +238,7 @@ class HousingCategory(Base, BaseMixin):
     __tablename__ = "housing_category"
     __table_args__ = (
         CheckConstraint("level >= 0 and level <= 2"),
+        UniqueConstraint("name"),
         ForeignKeyConstraint(
             ("parent_id",),
             ("housing_category.id",),
@@ -243,9 +249,7 @@ class HousingCategory(Base, BaseMixin):
     )
 
     name: str = Column(String(50), nullable=False)
-    description: str = Column(String(100), nullable=False)
-    level: int = Column(Integer, nullable=False)
-
+    level: int = Column(Integer, nullable=False, default=0)
     parent_id: int = Column(Integer, nullable=True)
 
     parent: "HousingCategory" = relationship("HousingCategory", uselist=False)
@@ -258,7 +262,6 @@ class HousingCategory(Base, BaseMixin):
             f"<{self.__class__.__name__}("
             f"id={self.id}, "
             f"name='{self.name}', "
-            f"description='{self.description}', "
             f"level='{self.level}', "
             f"parent='{self.parent}', "
             f"housings='{self.housings}')>"
@@ -267,6 +270,14 @@ class HousingCategory(Base, BaseMixin):
 
 class HousingType(Base, BaseMixin):
     __tablename__ = "housing_type"
+    __table_args__ = (
+        UniqueConstraint(
+            "name",
+        ),
+        UniqueConstraint(
+            "description",
+        ),
+    )
 
     name: str = Column(String(50), nullable=False)
     description: str = Column(String(100), nullable=False)
@@ -523,7 +534,6 @@ class User(Base, BaseMixin):
     requests: List["HousingRequest"] = relationship(
         "HousingRequest", back_populates="user", uselist=True, collection_class=list
     )
-    # todo
     #: UserReview reviews = relationship('UserReview', back_populates='user')
     #: UserReview reviews_author = relationship('UserReview', back_populates='reviewer')
     history: List["HousingHistory"] = relationship(
