@@ -159,6 +159,7 @@ def create_house(
 ) -> int:
     housing = create_housing(house_scheme, user, db)
     create_characteristics(house_scheme, housing, db)
+    create_housing_pricing(house_scheme, housing, db)
 
     return housing.id
 

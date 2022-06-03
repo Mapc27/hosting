@@ -250,6 +250,18 @@ def change_characteristics(
         db.refresh(characteristic)
 
 
+def change_housing_pricing(
+    per_night: int, housing: Housing, db: Session
+) -> HousingPricing:
+    housing_pricing: HousingPricing = (
+        db.query(HousingPricing).filter(HousingPricing.housing_id == housing.id).first()
+    )
+    housing_pricing.per_night = per_night
+    db.add(housing_pricing)
+    db.commit()
+    return housing_pricing
+
+
 def change_data_housing(
     house_scheme: HouseChange,
     housing_id: int,
@@ -270,6 +282,8 @@ def change_data_housing(
         housing.category_id = house_scheme.category_id
     if house_scheme.type_id:
         housing.type_id = house_scheme.type_id
+    if house_scheme.per_night:
+        change_housing_pricing(house_scheme.per_night, housing, db)
 
     db.commit()
     return housing
@@ -296,14 +310,14 @@ def create_housing_comfort(
 
 
 def create_housing_pricing(
-    housing_pricing_scheme: HousingPricingCreate, housing: Housing, db: Session
+    house_scheme: HouseCreate, housing: Housing, db: Session
 ) -> HousingPricing:
     housing_pricing: HousingPricing = HousingPricing(
-        per_night=housing_pricing_scheme.per_night,
-        cleaning=housing_pricing_scheme.cleaning,
-        service=housing_pricing_scheme.service,
-        discount_per_week=housing_pricing_scheme.discount_per_week,
-        discount_per_month=housing_pricing_scheme.discount_per_month,
+        per_night=house_scheme.per_night,
+        cleaning=0,
+        service=0,
+        discount_per_week=0,
+        discount_per_month=0,
         housing_id=housing.id,
     )
     db.add(housing_pricing)
