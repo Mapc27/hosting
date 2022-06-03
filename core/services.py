@@ -30,6 +30,7 @@ from core.schemas import (
     ComfortCategoryCreate,
     ComfortCreate,
     HousingPricingCreate,
+    HouseChange,
 )
 
 
@@ -184,31 +185,11 @@ def set_main_housing_image_(
     return replace_main_housing_image(housing_image, housing_id, db)
 
 
-def create_category(category_scheme: CategoryCreate, db: Session) -> HousingCategory:
-    category: HousingCategory = HousingCategory(
-        name=category_scheme.name,
-        description=category_scheme.description,
-        level=category_scheme.level,
-    )
-    db.add(category)
-    db.commit()
-    return category
-
-
-def create_housing_type(type_scheme: HousingTypeCreate, db: Session) -> HousingType:
-    housing_type: HousingType = HousingType(
-        name=type_scheme.name, description=type_scheme.description
-    )
-    db.add(housing_type)
-    db.commit()
-    return housing_type
-
-
 def create_housing(
     house_scheme: HouseCreate,
     user: User,
-    category: HousingCategory,
-    housing_type: HousingType,
+    category_id: int,
+    type_id: int,
     db: Session,
 ) -> Housing:
     housing: Housing = Housing(
@@ -216,21 +197,86 @@ def create_housing(
         address=house_scheme.address,
         user_id=user.id,
         description=house_scheme.description,
-        category_id=category.id,
-        type_id=housing_type.id,
+        category_id=category_id,
+        type_id=type_id,
     )
     db.add(housing)
+    db.commit()
+    db.refresh(housing)
+    return housing
+
+
+def create_characteristics(
+    house_scheme: HouseCreate, housing: Housing, db: Session
+) -> None:
+    for characteristic_dict in house_scheme.characteristics:
+        characteristic: Characteristic = Characteristic(
+            amount=characteristic_dict.amount,
+            housing_id=housing.id,
+            characteristic_type_id=characteristic_dict.characteristic_id,
+        )
+        db.add(characteristic)
+        db.commit()
+        db.refresh(characteristic)
+
+
+def delete_housing_(housing_id: int, db: Session) -> Housing:
+    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    db.delete(housing)
     db.commit()
     return housing
 
 
-def create_comfort_category(
-    comfort_category_scheme: ComfortCategoryCreate, db: Session
-) -> ComfortCategory:
-    category: ComfortCategory = ComfortCategory(name=comfort_category_scheme.name)
-    db.add(category)
+def change_characteristics(
+    characteristics_list: list, housing_id: int, db: Session
+) -> None:
+    for characteristic_dict in characteristics_list:
+        characteristic: Characteristic = (
+            db.query(Characteristic)
+            .filter(
+                Characteristic.characteristic_type_id
+                == characteristic_dict.characteristic_id
+            )
+            .first()
+        )
+        if characteristic:
+            characteristic.amount = characteristic_dict.amount
+        else:
+            characteristic_new: Characteristic = Characteristic(
+                amount=characteristic_dict.amount,
+                housing_id=housing_id,
+                characteristic_type_id=characteristic_dict.characteristic_id,
+            )
+            db.add(characteristic_new)
+        db.commit()
+        db.refresh(characteristic)
+
+
+def change_data_housing(
+    house_scheme: HouseChange,
+    housing_id: int,
+    category_id: Union[int, None],
+    type_id: Union[int, None],
+    db: Session,
+) -> Union[Housing, None]:
+    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    if not housing:
+        return None
+    if house_scheme.name:
+        housing.name = house_scheme.name
+    if house_scheme.address:
+        housing.address = house_scheme.address
+    if house_scheme.description:
+        housing.description = house_scheme.description
+    if house_scheme.characteristics:
+        change_characteristics(house_scheme.characteristics, housing_id, db)
+    if category_id:
+        housing.category_id = category_id
+    if type_id:
+        housing.type_id = type_id
+
     db.commit()
-    return category
+    return housing
 
 
 def create_comfort(
