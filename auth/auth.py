@@ -77,6 +77,7 @@ async def delete(
     return {"detail": "Success"}
 
 
+# todo need to test
 @router.get("/wish")
 async def get_wish(
     wishlist: Wishlist,
@@ -89,6 +90,7 @@ async def get_wish(
     }
 
 
+# todo need to test
 @router.get("/wishlist")
 async def get_wishlist(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
@@ -96,6 +98,7 @@ async def get_wishlist(
     return {"user_id": user.id, "wishlist": get_wishlist_(user, db)}
 
 
+# todo need to test
 @router.post("/wishlist")
 async def create_wishlist(
     wishlist: CreateWishlist,
@@ -112,6 +115,7 @@ async def create_wishlist(
     return liked_housing.as_dict()
 
 
+# todo need to test
 @router.delete("/wishlist")
 async def delete_wishlist(
     wishlist: DeleteWishlist,

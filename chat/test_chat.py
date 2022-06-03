@@ -78,3 +78,13 @@ def test_send_message(
     assert response["response"]["type"] == "MESSAGE"
     assert response["response"]["body"]["chat_id"] == chat_id
     assert response["response"]["body"]["chat_message"] is not None
+
+
+@auth
+def test_bad_request(websocket: WebSocketTestSession, **kwargs: dict) -> None:
+    data = {"123": 123}
+
+    websocket.send_json(data)
+    response = websocket.receive_json()
+
+    assert response["response"]["type"] == "ERROR"
