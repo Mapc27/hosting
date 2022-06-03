@@ -1,5 +1,5 @@
 import random
-from typing import Any, Union, Tuple, Callable
+from typing import Any, Union, Tuple, Callable, Dict
 
 from fastapi.testclient import TestClient
 from requests import Response  # type: ignore
@@ -30,18 +30,24 @@ def delete(headers: dict) -> None:
     client.delete("/user", headers=headers)
 
 
-def auth_and_create_user() -> Tuple[str, str, dict, Response]:
+def auth_and_create_user() -> Tuple[str, str, dict, Response, str]:
     email, password, response = create_user()
     token = login(email, password)
     headers = {"Authorization": f"Bearer {token}"}
-    return email, password, headers, response
+    return email, password, headers, response, token
 
 
 def auth(func: Callable) -> Callable:
     def wrapper() -> None:
-        email, password, headers, response = auth_and_create_user()
-
-        func(email=email, password=password, headers=headers, response=response)
+        email, password, headers, response, token = auth_and_create_user()
+        kwargs = {
+            "email": email,
+            "password": password,
+            "headers": headers,
+            "response": response,
+            "token": token,
+        }
+        func(**kwargs)
         delete(headers=headers)
 
     return wrapper
@@ -80,14 +86,20 @@ def test_login() -> None:
 
 
 @auth
-def test_logout(email: str, password: str, headers: dict, response: Response) -> None:
+def test_logout(**kwargs: Dict[str, Union[str, Response, dict]]) -> None:
+    headers = kwargs.get("headers")
+    email = kwargs.get("email")
+
     response = client.post("/user/logout", headers=headers)
     assert response.status_code == 200
     assert response.json()["email"] == email
 
 
 @auth
-def test_profile(email: str, password: str, headers: dict, response: Response) -> None:
+def test_profile(**kwargs: Dict[str, Union[str, Response, dict]]) -> None:
+    email = kwargs.get("email")
+    headers = kwargs.get("headers")
+
     response = client.get("/user/profile", headers=headers)
     assert response.status_code == 200
     assert response.json()["email"] == email
@@ -121,9 +133,9 @@ def test_change_profile() -> None:
 
 
 @auth
-def test_create_image(
-    email: str, password: str, headers: dict, response: Response
-) -> None:
+def test_create_image(**kwargs: Dict[str, Union[str, Response, dict]]) -> None:
+    headers = kwargs.get("headers")
+
     with open("test/test_image.jpg", "rb") as file:
         form = {"image": file}
         response = client.post("/user/image", files=form, headers=headers)
@@ -138,7 +150,10 @@ def test_create_image(
 
 
 @auth
-def test_get_user(email: str, password: str, headers: dict, response: Response) -> None:
+def test_get_user(**kwargs: Dict[str, Union[str, Response, dict]]) -> None:
+    response: Response = kwargs.get("response")
+    headers = kwargs.get("headers")
+
     user_id = response.json()["id"]
     response = client.get(f"/user/{user_id}", headers=headers)
     assert response.json()["email"] is not None
