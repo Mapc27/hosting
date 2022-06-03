@@ -32,6 +32,7 @@ from core.services import (
     create_characteristics,
     delete_housing_,
     change_data_housing,
+    create_housing_pricing,
 )
 
 router = APIRouter(prefix="", tags=["core"])
