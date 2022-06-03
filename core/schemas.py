@@ -28,6 +28,8 @@ class HouseCreate(BaseModel):
     address: str
     description: str
     characteristics: List[Characteristic]
+    category_id: int
+    type_id: int
 
 
 class HouseChange(BaseModel):
@@ -35,6 +37,8 @@ class HouseChange(BaseModel):
     address: Union[str, None] = None
     description: Union[str, None] = None
     characteristics: Union[List[Characteristic], None] = None
+    category_id: Union[int, None] = None
+    type_id: Union[int, None] = None
 
 
 class ComfortCategoryCreate(BaseModel):
