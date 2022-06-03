@@ -2,9 +2,10 @@ import os
 import uuid
 from typing import Union, Any
 
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from starlette import status
 
 from app.settings import MEDIA_FOLDER
 from core.models import (
@@ -25,9 +26,6 @@ from core.models import (
 )
 from core.schemas import (
     HouseCreate,
-    CategoryCreate,
-    HousingTypeCreate,
-    ComfortCategoryCreate,
     ComfortCreate,
     HousingPricingCreate,
     HouseChange,
@@ -39,7 +37,7 @@ def get_pagination_data(db: Session, page: int = 0, limit: int = 10) -> Any:
     return data
 
 
-def get_chat_short_(user_id: int, chat_id: int, db: Session) -> dict:
+def get_chat_short_(user_id: int, chat_id: int, db: Session) -> Any:
     sql_statement = f"""
         select json_build_object(
         'chat_id', chat.id,
@@ -56,12 +54,7 @@ def get_chat_short_(user_id: int, chat_id: int, db: Session) -> dict:
         and (chat_message.created_at is null or chat_message.created_at =
         (select max (chat_message.created_at) from chat_message where chat_id = chat.id));
     """
-    result = db.execute(sql_statement)
-    result_dict = {}
-    for i in result:
-        result_dict = i[0]
-        break
-    return result_dict
+    return db.execute(sql_statement).first()[0]
 
 
 def create_chat_(user1: User, user2: User, db: Session) -> Union[Chat, None]:
@@ -354,8 +347,10 @@ def get_housing_(housing_id: int, db: Session) -> dict:
 
 def create_housings_attrs_(db: Session) -> None:
     for model in (HousingType, HousingCategory, CharacteristicType):
-        db.query(model).delete()
-    db.commit()
+        if db.query(model).all():
+            raise HTTPException(
+                status_code=status.HTTP_200_OK, detail="Attrs already exists"
+            )
 
     for name, description in {
         "Entire place": "A place all to yourself",

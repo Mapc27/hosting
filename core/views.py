@@ -9,29 +9,17 @@ from app.settings import get_db
 from auth.token import get_current_user
 from core.models import (
     User,
-    HousingCategory,
-    HousingType,
-    ComfortCategory,
-    Comfort,
     Chat,
 )
 from core.schemas import (
     ChatCreate,
     HouseCreate,
-    CategoryCreate,
-    HousingTypeCreate,
-    ComfortCategoryCreate,
-    ComfortCreate,
-    HousingPricingCreate,
     ChatDelete,
     HouseChange,
 )
 from core.services import (
     create_chat_,
     create_housing,
-    create_comfort,
-    create_housing_comfort,
-    create_housing_pricing,
     get_housing_by_user,
     get_chat_short_,
     create_housing_image_,
@@ -68,7 +56,7 @@ async def create_chat(
     chat_scheme: ChatCreate,
     user1: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> Union[dict, Any]:
     if user1.id == chat_scheme.user_id:
         return {"detail": "user_id is id of current user"}
 
@@ -90,19 +78,14 @@ async def delete_chat(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    chat = (
-        db.query(Chat)
-        .filter(
-            Chat.id == chat_scheme.chat_id,
-            or_(Chat.user1_id == user.id, Chat.user2_id == user.id),
-        )
-        .first()
+    chat = db.query(Chat).filter(
+        Chat.id == chat_scheme.chat_id,
+        or_(Chat.user1_id == user.id, Chat.user2_id == user.id),
     )
 
-    if not chat:
+    if not chat.first():
         return {"detail": "Chat doesn't exists"}
-
-    db.delete(chat)
+    chat.delete()
     db.commit()
 
     return {"detail": "Success"}
@@ -113,7 +96,7 @@ async def get_chat_short(
     chat_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> Union[Any, dict]:
     json_chat = get_chat_short_(user.id, chat_id, db)
     return (
         json_chat
