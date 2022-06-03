@@ -26,8 +26,6 @@ from core.models import (
 )
 from core.schemas import (
     HouseCreate,
-    ComfortCreate,
-    HousingPricingCreate,
     HouseChange,
 )
 
@@ -51,8 +49,6 @@ def get_pagination_data(db: Session, page: int = 0, limit: int = 10) -> Any:
             extra_fields=["characteristics", "category", "pricing", "type"]
         )
         housing["main_image"] = query.HousingImage.as_dict()
-        # housing['category'] = query.HousingCategory.as_dict()
-        # housing['type'] = query.HousingType.as_dict()
         new_list.append(housing)
 
     return new_list
@@ -306,26 +302,6 @@ def change_data_housing(
 
     db.commit()
     return housing
-
-
-def create_comfort(
-    comfort_scheme: ComfortCreate, category: ComfortCategory, db: Session
-) -> Comfort:
-    comfort: Comfort = Comfort(name=comfort_scheme.name, category_id=category.id)
-    db.add(comfort)
-    db.commit()
-    return comfort
-
-
-def create_housing_comfort(
-    comfort: Comfort, housing: Housing, db: Session
-) -> HousingComfort:
-    housing_comfort: HousingComfort = HousingComfort(
-        housing_id=housing.id, comfort_id=comfort.id
-    )
-    db.add(housing_comfort)
-    db.commit()
-    return housing_comfort
 
 
 def create_housing_pricing(
