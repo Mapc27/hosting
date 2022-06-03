@@ -155,11 +155,14 @@ def delete_housing_image_(
 
     db.delete(housing_image)
     db.commit()
-    if housing_image.is_main:
-        db.query(HousingImage).filter(
-            HousingImage.housing_id == housing_image.housing_id
-        ).first().is_main = True
-    db.commit()
+    try:
+        if housing_image.is_main:
+            db.query(HousingImage).filter(
+                HousingImage.housing_id == housing_image.housing_id
+            ).first().is_main = True
+        db.commit()
+    except AttributeError:
+        pass
     return housing_image
 
 
