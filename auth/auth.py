@@ -1,10 +1,7 @@
-from typing import Union
-
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 import os
 from typing import Any
 
-from fastapi import Request
+from fastapi import Request, UploadFile, File
 from starlette.responses import RedirectResponse, JSONResponse
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from fastapi import APIRouter, Depends, HTTPException
@@ -129,7 +126,6 @@ async def delete(
     return {"detail": "Success"}
 
 
-# todo need to test
 @router.get("/wish/{liked_housing_id}")
 async def get_wish(
     liked_housing_id: int,
