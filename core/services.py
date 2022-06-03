@@ -2,9 +2,10 @@ import os
 import uuid
 from typing import Union, Any
 
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from starlette import status
 
 from app.settings import MEDIA_FOLDER
 from core.models import (
@@ -18,23 +19,46 @@ from core.models import (
     HousingComfort,
     HousingPricing,
     HousingImage,
+    Characteristic,
+    Rule,
+    HousingRule,
+    CharacteristicType,
 )
 from core.schemas import (
     HouseCreate,
-    CategoryCreate,
-    HousingTypeCreate,
-    ComfortCategoryCreate,
     ComfortCreate,
     HousingPricingCreate,
+    HouseChange,
 )
 
 
 def get_pagination_data(db: Session, page: int = 0, limit: int = 10) -> Any:
-    data = db.query(Housing).offset(page).limit(limit).all()
-    return data
+    data = (
+        db.query(Housing, HousingImage, HousingCategory, HousingType)
+        .filter(
+            Housing.id == HousingImage.housing_id,
+            HousingCategory.id == Housing.category_id,
+            HousingType.id == Housing.type_id,
+            HousingImage.is_main == True,
+        )
+        .offset(page)
+        .limit(limit)
+        .all()
+    )
+    new_list = []
+    for query in data:
+        housing = query.Housing.as_dict(
+            extra_fields=["characteristics", "category", "pricing", "type"]
+        )
+        housing["main_image"] = query.HousingImage.as_dict()
+        # housing['category'] = query.HousingCategory.as_dict()
+        # housing['type'] = query.HousingType.as_dict()
+        new_list.append(housing)
+
+    return new_list
 
 
-def get_chat_short_(user_id: int, chat_id: int, db: Session) -> dict:
+def get_chat_short_(user_id: int, chat_id: int, db: Session) -> Any:
     sql_statement = f"""
         select json_build_object(
         'chat_id', chat.id,
@@ -51,12 +75,7 @@ def get_chat_short_(user_id: int, chat_id: int, db: Session) -> dict:
         and (chat_message.created_at is null or chat_message.created_at =
         (select max (chat_message.created_at) from chat_message where chat_id = chat.id));
     """
-    result = db.execute(sql_statement)
-    result_dict = {}
-    for i in result:
-        result_dict = i[0]
-        break
-    return result_dict
+    return db.execute(sql_statement).first()[0]
 
 
 def create_chat_(user1: User, user2: User, db: Session) -> Union[Chat, None]:
@@ -73,7 +92,9 @@ def create_chat_(user1: User, user2: User, db: Session) -> Union[Chat, None]:
     return chat
 
 
-def get_housing(user: User, housing_id: int, db: Session) -> Union[None, Housing]:
+def get_housing_by_user(
+    user: User, housing_id: int, db: Session
+) -> Union[None, Housing]:
     if not user:
         return None
     housing: Housing = (
@@ -155,11 +176,14 @@ def delete_housing_image_(
 
     db.delete(housing_image)
     db.commit()
-    if housing_image.is_main:
-        db.query(HousingImage).filter(
-            HousingImage.housing_id == housing_image.housing_id
-        ).first().is_main = True
-    db.commit()
+    try:
+        if housing_image.is_main:
+            db.query(HousingImage).filter(
+                HousingImage.housing_id == housing_image.housing_id
+            ).first().is_main = True
+        db.commit()
+    except AttributeError:
+        pass
     return housing_image
 
 
@@ -178,31 +202,9 @@ def set_main_housing_image_(
     return replace_main_housing_image(housing_image, housing_id, db)
 
 
-def create_category(category_scheme: CategoryCreate, db: Session) -> HousingCategory:
-    category: HousingCategory = HousingCategory(
-        name=category_scheme.name,
-        description=category_scheme.description,
-        level=category_scheme.level,
-    )
-    db.add(category)
-    db.commit()
-    return category
-
-
-def create_housing_type(type_scheme: HousingTypeCreate, db: Session) -> HousingType:
-    housing_type: HousingType = HousingType(
-        name=type_scheme.name, description=type_scheme.description
-    )
-    db.add(housing_type)
-    db.commit()
-    return housing_type
-
-
 def create_housing(
     house_scheme: HouseCreate,
     user: User,
-    category: HousingCategory,
-    housing_type: HousingType,
     db: Session,
 ) -> Housing:
     housing: Housing = Housing(
@@ -210,21 +212,100 @@ def create_housing(
         address=house_scheme.address,
         user_id=user.id,
         description=house_scheme.description,
-        category_id=category.id,
-        type_id=housing_type.id,
+        category_id=house_scheme.category_id,
+        type_id=house_scheme.type_id,
     )
     db.add(housing)
+    db.commit()
+    db.refresh(housing)
+    return housing
+
+
+def create_characteristics(
+    house_scheme: HouseCreate, housing: Housing, db: Session
+) -> None:
+    for characteristic_dict in house_scheme.characteristics:
+        characteristic: Characteristic = Characteristic(
+            amount=characteristic_dict.amount,
+            housing_id=housing.id,
+            characteristic_type_id=characteristic_dict.characteristic_id,
+        )
+        db.add(characteristic)
+        db.commit()
+        db.refresh(characteristic)
+
+
+def delete_housing_(housing_id: int, db: Session) -> Housing:
+    query = db.query(Housing).filter(Housing.id == housing_id)
+    housing: Housing = query.first()
+    query.delete()
     db.commit()
     return housing
 
 
-def create_comfort_category(
-    comfort_category_scheme: ComfortCategoryCreate, db: Session
-) -> ComfortCategory:
-    category: ComfortCategory = ComfortCategory(name=comfort_category_scheme.name)
-    db.add(category)
+def change_characteristics(
+    characteristics_list: list, housing_id: int, db: Session
+) -> None:
+    for characteristic_dict in characteristics_list:
+        characteristic: Characteristic = (
+            db.query(Characteristic)
+            .filter(
+                Characteristic.characteristic_type_id
+                == characteristic_dict.characteristic_id
+            )
+            .first()
+        )
+        if characteristic:
+            characteristic.amount = characteristic_dict.amount
+        else:
+            characteristic_new: Characteristic = Characteristic(
+                amount=characteristic_dict.amount,
+                housing_id=housing_id,
+                characteristic_type_id=characteristic_dict.characteristic_id,
+            )
+            db.add(characteristic_new)
+        db.commit()
+        if characteristic:
+            db.refresh(characteristic)
+
+
+def change_housing_pricing(
+    per_night: int, housing: Housing, db: Session
+) -> HousingPricing:
+    housing_pricing: HousingPricing = (
+        db.query(HousingPricing).filter(HousingPricing.housing_id == housing.id).first()
+    )
+    housing_pricing.per_night = per_night
+    db.add(housing_pricing)
     db.commit()
-    return category
+    return housing_pricing
+
+
+def change_data_housing(
+    house_scheme: HouseChange,
+    housing_id: int,
+    db: Session,
+) -> Union[Housing, None]:
+    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    if not housing:
+        return None
+    if house_scheme.name:
+        housing.name = house_scheme.name
+    if house_scheme.address:
+        housing.address = house_scheme.address
+    if house_scheme.description:
+        housing.description = house_scheme.description
+    if house_scheme.characteristics:
+        change_characteristics(house_scheme.characteristics, housing_id, db)
+    if house_scheme.category_id:
+        housing.category_id = house_scheme.category_id
+    if house_scheme.type_id:
+        housing.type_id = house_scheme.type_id
+    if house_scheme.per_night:
+        change_housing_pricing(house_scheme.per_night, housing, db)
+
+    db.commit()
+    return housing
 
 
 def create_comfort(
@@ -248,16 +329,101 @@ def create_housing_comfort(
 
 
 def create_housing_pricing(
-    housing_pricing_scheme: HousingPricingCreate, housing: Housing, db: Session
+    house_scheme: HouseCreate, housing: Housing, db: Session
 ) -> HousingPricing:
     housing_pricing: HousingPricing = HousingPricing(
-        per_night=housing_pricing_scheme.per_night,
-        cleaning=housing_pricing_scheme.cleaning,
-        service=housing_pricing_scheme.service,
-        discount_per_week=housing_pricing_scheme.discount_per_week,
-        discount_per_month=housing_pricing_scheme.discount_per_month,
+        per_night=house_scheme.per_night,
+        cleaning=0,
+        service=0,
+        discount_per_week=0,
+        discount_per_month=0,
         housing_id=housing.id,
     )
     db.add(housing_pricing)
     db.commit()
     return housing_pricing
+
+
+def get_housing_(housing_id: int, db: Session) -> dict:
+    housing: Housing = db.query(Housing).filter(Housing.id == housing_id).first()
+    if not housing:
+        return {"detail": "Housing doesn't exists"}
+    characteristics = (
+        db.query(Characteristic).filter(Characteristic.housing_id == housing_id).all()
+    )
+    characteristics = [
+        i.as_dict(extra_fields=["characteristic_type"]) for i in characteristics
+    ]
+
+    rules = (
+        db.query(HousingRule, Rule)
+        .filter(HousingRule.housing_id == housing_id, HousingRule.id == Rule.id)
+        .all()
+    )
+    rules = [i.Rule.as_dict(extend=["updated_at", "created_at"]) for i in rules]
+
+    comforts = (
+        db.query(HousingComfort, Comfort, ComfortCategory)
+        .filter(
+            HousingComfort.housing_id == housing_id,
+            Comfort.category_id == ComfortCategory.id,
+            HousingComfort.comfort_id == Comfort.id,
+        )
+        .all()
+    )
+
+    comforts = [
+        i.Comfort.as_dict(extend=["updated_at", "created_at"]) for i in comforts
+    ]
+
+    housing_dict = housing.as_dict(
+        extra_fields=["user", "housing_images", "type", "calendar", "pricing"]
+    )
+    housing_dict["characteristics"] = characteristics
+    housing_dict["rules"] = rules
+    housing_dict["comforts"] = comforts
+    return housing_dict
+
+
+def create_housings_attrs_(db: Session) -> None:
+    for model in (HousingType, HousingCategory, CharacteristicType):
+        if db.query(model).all():
+            raise HTTPException(
+                status_code=status.HTTP_200_OK, detail="Attrs already exists"
+            )
+
+    for name, description in {
+        "Entire place": "A place all to yourself",
+        "Shared room": "A sleeping space and common areas that may be shared with others",
+        "Private room": "Your own room in a home or a hotel, plus some shared common spaces",
+    }.items():
+        housing_type = HousingType(name=name, description=description)
+        db.add(housing_type)
+
+    for name in (
+        "Apartment",
+        "House",
+        "Secondary unit",
+        "Unique space",
+        "Bed and breakfast",
+        "Boutique hotel",
+    ):
+        housing_category = HousingCategory(name=name)
+        db.add(housing_category)
+
+    for name in ("guests", "bedrooms", "beds", "baths"):
+        characteristic_type = CharacteristicType(name=name)
+        db.add(characteristic_type)
+    db.commit()
+
+
+def get_housing_fields_(db: Session) -> dict:
+    return {
+        "housing_types": [obj.as_dict() for obj in db.query(HousingType).all()],
+        "characteristic_types": [
+            obj.as_dict() for obj in db.query(CharacteristicType).all()
+        ],
+        "housing_categories": [
+            obj.as_dict() for obj in db.query(HousingCategory).all()
+        ],
+    }

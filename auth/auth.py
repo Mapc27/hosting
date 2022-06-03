@@ -1,3 +1,6 @@
+from typing import Union
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 import os
 from typing import Any
 
@@ -6,24 +9,27 @@ from starlette.responses import RedirectResponse, JSONResponse
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from starlette import status
 from typing import Union
 from starlette.config import Config
 
-from core.models import User
 from app.settings import get_db
 from auth import scheme
 from auth.hashed import verify_password
-from auth.scheme import Profile, Wishlist, CreateWishlist, DeleteWishlist, ChangeProfile
-from auth.services import create_wishlist_, get_wishlist_, delete_wishlist_, get_wish_
-from auth.database import get_user_by_email, create_user, change_user_data
-from auth.token import (
-    verify_token,
-    create_access_token,
-    get_current_user,
+from auth.scheme import Wishlist, CreateWishlist, DeleteWishlist, ChangeProfile
+from auth.services import (
+    create_wishlist_,
+    get_wishlist_,
+    delete_wishlist_,
+    get_wish_,
+    delete_user_image_,
+    create_user_image_,
 )
-from core.models import User
+from auth.database import get_user_by_email, create_user, change_user_data
+from auth.token import create_access_token, get_current_user
+from core.models import User, LikedHousing
 
 router = APIRouter(prefix="/user", tags=["authentication"])
 
@@ -82,7 +88,7 @@ async def login(
             detail="Invalid password or login",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not verify_password(user.password, user.password):
+    if not verify_password(request.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password or login",
@@ -94,7 +100,7 @@ async def login(
 
 
 @router.post("/create")
-def create(
+async def create(
     user_scheme: scheme.UserCreate, db: Session = Depends(get_db)
 ) -> Union[User, dict]:
     user = get_user_by_email(db, user_scheme.email)
@@ -106,47 +112,61 @@ def create(
 
 
 @router.post("/logout")
-def logout(user: User = Depends(get_current_user)) -> scheme.TokenData:
+async def logout(user: User = Depends(get_current_user)) -> scheme.TokenData:
     token_data = scheme.TokenData(email=user.email, expires=0)
     return token_data
 
 
-@router.get("/wish")
-def get_wish(
-    wishlist: Wishlist,
+@router.delete("")
+async def delete(
+    user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
+    db.delete(user)
+    try:
+        db.commit()
+    except IntegrityError:
+        return {"detail": "Failed"}
+    return {"detail": "Success"}
+
+
+# todo need to test
+@router.get("/wish/{liked_housing_id}")
+async def get_wish(
+    liked_housing_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
     return {
         "user_id": user.id,
-        "wish": get_wish_(user, db, liked_housing_id=wishlist.liked_housing_id),
+        "wish": get_wish_(user, db, liked_housing_id=liked_housing_id),
     }
 
 
 @router.get("/wishlist")
-def get_wishlist(
+async def get_wishlist(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> dict:
     return {"user_id": user.id, "wishlist": get_wishlist_(user, db)}
 
 
 @router.post("/wishlist")
-def create_wishlist(
+async def create_wishlist(
     wishlist: CreateWishlist,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    liked_housing = create_wishlist_(user, wishlist.housing_id, db)
+    liked_housing: Union[LikedHousing, None] = create_wishlist_(
+        user, wishlist.housing_id, db
+    )
     if not liked_housing:
-        return {"detail": "Like already exists"}
-    return {
-        "user_id": user.id,
-        "wish": get_wish_(user, db, housing_id=wishlist.housing_id),
-    }
+        return {
+            "detail": f"Like already exists or Housing with id = {wishlist.housing_id} doesn't exists"
+        }
+    return liked_housing.as_dict()
 
 
 @router.delete("/wishlist")
-def delete_wishlist(
+async def delete_wishlist(
     wishlist: DeleteWishlist,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -166,14 +186,43 @@ def delete_wishlist(
 
 
 @router.get("/profile")
-def profile(user: User = Depends(get_current_user)) -> User:
+async def profile(user: User = Depends(get_current_user)) -> User:
     return user
 
 
 @router.post("/change_profile")
-def change_profile(
+async def change_profile(
     profile_scheme: ChangeProfile,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
     return change_user_data(profile_scheme, user, db)
+
+
+@router.post("/image")
+async def create_user_image(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    image: UploadFile = File(...),
+) -> dict:
+    await create_user_image_(image, user, db)
+    return user.as_dict()
+
+
+@router.delete("/image")
+async def delete_user_image(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    delete_user_image_(user, db)
+    return user.as_dict()
+
+
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
+    other_user: User = db.query(User).filter(User.id == user_id).first()
+    if not other_user:
+        return {"detail": "User not found"}
+    return other_user.as_dict()

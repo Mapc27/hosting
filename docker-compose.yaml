@@ -2,6 +2,8 @@ version: '3'
 
 services:
   nginx:
+    container_name: "nginx"
+    privileged: true
     image: nginx:latest
     ports:
       - "80:80"
@@ -12,6 +14,8 @@ services:
       - app
     restart: always
   app:
+    container_name: "app"
+    privileged: true
     build:
       context: .
       dockerfile: deploy/python/Dockerfile
@@ -30,6 +34,8 @@ services:
     restart: always
 
   db:
+    container_name: "db"
+    privileged: true
     image: postgres:13-alpine
     ports:
       - "5432:5432"
