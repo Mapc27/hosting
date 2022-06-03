@@ -77,7 +77,6 @@ async def delete(
     return {"detail": "Success"}
 
 
-# todo need to test
 @router.get("/wish/{liked_housing_id}")
 async def get_wish(
     liked_housing_id: int,

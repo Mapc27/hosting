@@ -38,7 +38,6 @@ from core.services import (
 router = APIRouter(prefix="", tags=["core"])
 
 
-# todo need to test
 @router.get("/offers")
 def offers(db: Session = Depends(get_db), page: int = 0, limit: int = 50) -> Any:
     return get_pagination_data(db, page, limit)
@@ -206,7 +205,6 @@ def change_housing(
         return {"detail": "Housing doesn't exist"}
 
 
-# todo need to test
 @router.get("/housing/{housing_id}")
 def get_housing(housing_id: int, db: Session = Depends(get_db)) -> dict:
     return get_housing_(housing_id, db)
