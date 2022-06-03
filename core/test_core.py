@@ -153,4 +153,87 @@ def test_edit_housing(
     response = client.put(
         f"/housing/{housing_id}", headers=headers, json={"name": name}
     )
+    assert response.status_code == 200
     assert response.json()["name"] == name
+
+
+@housing
+def test_housing_image(
+    housing_id: int, **kwargs: Dict[str, Union[str, Response, Dict, int]]
+) -> None:
+    headers = kwargs.get("headers")
+
+    with open("test/test_image.jpg", "rb") as file:
+        form = {"image": file}
+        response = client.post(
+            "/housing/image/",
+            files=form,
+            headers=headers,
+            data={"housing_id": housing_id},
+        )
+
+    image_id = response.json()["id"]
+    assert response.status_code == 200
+    assert response.json()["housing_id"] == housing_id
+    assert response.json()["file_name"] is not None
+
+    response = client.put(
+        "/housing/image/set_main",
+        headers=headers,
+        data={"housing_id": housing_id, "image_id": image_id},
+    )
+    assert response.status_code == 200
+    assert response.json()["housing_id"] == housing_id
+    assert response.json()["file_name"] is not None
+    assert response.json()["id"] == image_id
+
+    wishlist(housing_id, **kwargs)
+
+    response = client.delete(
+        "/housing/image/",
+        headers=headers,
+        data={"housing_id": housing_id, "image_id": image_id},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["housing_id"] == housing_id
+    assert response.json()["file_name"] is not None
+
+
+def wishlist(
+    housing_id: int, **kwargs: Dict[str, Union[str, Response, Dict, int]]
+) -> None:
+    headers = kwargs.get("headers")
+
+    response = client.post(
+        "/user/wishlist",
+        headers=headers,
+        json={"housing_id": housing_id},
+    )
+    assert response.status_code == 200
+    assert response.json()["housing_id"] == housing_id
+
+    response = client.get(
+        "/user/wishlist",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["wishlist"][0]["housing_id"] == housing_id
+
+    liked_housing_id = response.json()["wishlist"][0]["id"]
+
+    response = client.get(
+        f"/user/wish/{liked_housing_id}",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["wish"]["housing_id"] == housing_id
+
+    response = client.delete(
+        "/user/wishlist", headers=headers, json={"housing_id": housing_id}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["wish"]["housing_id"] == housing_id
