@@ -38,13 +38,13 @@ class HouseCreate(BaseModel):
 
 
 class HouseChange(BaseModel):
-    name: Union[str, None] = None
-    address: Union[str, None] = None
-    description: Union[str, None] = None
-    characteristics: Union[List[Characteristic], None] = None
-    category_id: Union[int, None] = None
-    type_id: Union[int, None] = None
-    per_night: Union[int, None] = None
+    name: Optional[str]
+    address: Optional[str]
+    description: Optional[str]
+    characteristics: Optional[List[Characteristic]]
+    category_id: Optional[int]
+    type_id: Optional[int]
+    per_night: Optional[int]
 
 
 class ComfortCategoryCreate(BaseModel):
