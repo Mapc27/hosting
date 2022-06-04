@@ -77,7 +77,7 @@ def get_chat_short_(user_id: int, chat_id: int, db: Session) -> Any:
 def create_chat_(user1: User, user2: User, db: Session) -> Union[Chat, None]:
     if (
         db.query(Chat)
-        .filter(Chat.user1_id == user1.id, Chat.user2_id == user2.id)
+        .filter(Chat.user1_id == user2.id, Chat.user2_id == user1.id)
         .first()
     ):
         return None
