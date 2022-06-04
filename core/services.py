@@ -81,7 +81,12 @@ def create_chat_(user1: User, user2: User, db: Session) -> Union[Chat, None]:
         .first()
     ):
         return None
-
+    if (
+        db.query(Chat)
+        .filter(Chat.user1_id == user1.id, Chat.user2_id == user2.id)
+        .first()
+    ):
+        return None
     chat: Chat = Chat(user1_id=user1.id, user2_id=user2.id)
     db.add(chat)
     db.commit()
