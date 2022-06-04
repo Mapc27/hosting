@@ -1,10 +1,7 @@
-from typing import Union
-
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 import os
 from typing import Any
 
-from fastapi import Request
+from fastapi import Request, UploadFile, File
 from starlette.responses import RedirectResponse, JSONResponse
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from fastapi import APIRouter, Depends, HTTPException
@@ -33,8 +30,12 @@ from core.models import User, LikedHousing
 
 router = APIRouter(prefix="/user", tags=["authentication"])
 
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID") or None
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET") or None
+# GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID") or None
+# GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET") or None
+GOOGLE_CLIENT_ID = (
+    "186699558815-thgrsev7mbcbghv7f3svoej54mgaii8g.apps.googleusercontent.com"
+)
+GOOGLE_CLIENT_SECRET = "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"
 
 config_data = {
     "GOOGLE_CLIENT_ID": GOOGLE_CLIENT_ID,

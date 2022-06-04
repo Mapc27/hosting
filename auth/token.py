@@ -13,8 +13,10 @@ from auth.database import get_user_by_email
 from auth.hashed import verify_password
 from auth.scheme import TokenData
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
-ALGORITHM = os.environ.get("ALGORITHM")
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+# ALGORITHM = os.environ.get("ALGORITHM")
+SECRET_KEY = "206dl5m94fa26ca2556c81p16gb7a9563b9qfr099f6f0f4c0a6cf13b88e8d3k7"
+ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/login")
